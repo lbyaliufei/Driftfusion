@@ -131,14 +131,26 @@ if p.OC == 0
     dJndx = dndt - g + U;
     dJpdx = dpdt - g + U;
     
+    % Calculates integrated electron and hole currents across the device from
+    % the continuity equations- location is not specified so not useful for
+    % transients
     Jn = trapz(p.x, dJndx, 2)*1000*p.e;
     Jp = trapz(p.x, dJpdx, 2)*1000*p.e;
     
     Jtot = Jn;
     
+    %% Currents from the right-hand boundary
+    if BC == 3
+                
+        Jn_r = p.sn_ext*(n(:, end) - p.etln0)*1000*-p.e;
+        Jp_r = p.sp_rec*(P(:, end) - p.etlp0)*1000*p.e;
+        Jtot = Jn_r + Jp_r;
+        
+    end
     
     %% Calculates current at every point and all times
     % Note the drift and diffusion currents do not cancel properly here
+    % under high field conditions
     if p.calcJ == 1
         
         % find the internal current density in the device

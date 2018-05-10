@@ -178,8 +178,10 @@ p.taun_htl = 1e6;        %%%% USE a high value of (e.g.) 1 to switch off
 p.taup_htl = 1e6;    %%%% NOT 0- these variables are in the denominator
 p.taun_i = 1e6;
 p.taup_i = 1e6;
-p.sn = 0;%1e7;            % [cm s-1] electron surface recombination velocity (rate constant for recombination at interface)
-p.sp = 0;%sn;             % [cm s-1] hole surface recombination velocity (rate constant for recombination at interface)
+p.sn_ext = 1e10;    % [cm s-1] electron extraction velocity coefficient
+p.sn_rec = 1e10;    % [cm s-1] electron surface recombination velocity (rate constant for recombination at interface)
+p.sp_ext = 1e10;    % [cm s-1] hole extraction velocity coefficient
+p.sp_rec = 1e10;    % [cm s-1] hole surface recombination velocity (rate constant for recombination at interface)
 
 % SRH parameters
 % se = 1e-15;             % [cm^2] Electron capture cross-section
