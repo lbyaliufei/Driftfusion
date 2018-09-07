@@ -187,7 +187,7 @@ end
 % s indicates source terms - see pdepe help for how these are implemented - be careful of signs! 
 
 % p-type
-if  x <= p.tp 
+if  x < p.tp 
   
 nn = p.N0*exp((u(1)-(p.EA-u(4)))/(p.kB*p.T));
 pp = p.N0*exp(((p.IP-u(4))-u(2))/(p.kB*p.T));
