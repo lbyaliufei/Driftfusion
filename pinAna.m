@@ -31,11 +31,14 @@ pp = p.N0.*exp((Evb-Efp)/(p.kB*p.T));
 
 % electron and hole currents
 for i=1:length(p.t)
-    Jn(i,:) = p.e*p.mue_i.*nn(i,:).*gradient(Efn(i,:), p.x);
-    Jp(i,:) = p.e*p.mue_i.*pp(i,:).*gradient(Efp(i,:), p.x);
+    
+    [Efnloc,dEfnlocdx] = pdeval(0,p.x,sol(i,:,1),p.x);
+    [Efploc,dEfplocdx] = pdeval(0,p.x,sol(i,:,2),p.x);
+    
+    Jn(i,:) = p.e*p.mue_i.*nn(i,:).*Efnloc;%gradient(Efn(i,:), p.x);
+    Jp(i,:) = p.e*p.mue_i.*pp(i,:).*Efploc;%gradient(Efp(i,:), p.x);
     Jtot(i,:) = Jn(i,:) + Jp(i,:);
 end
-
 
 Voc = 0;
 
@@ -75,7 +78,7 @@ if p.meshx_figon == 1
 end
 
 figure(1)
-plot(xnm, Ecb(end, :), xnm, Evb(end, :), xnm, Efn(end, :), '-', xnm, Efp(end, :), '-')
+plot(xnm, Ecb(end, :), xnm, Evb(end, :), xnm, Efn(end, :), '--', xnm, Efp(end, :), '--')
 xlabel('Position [nm]')
 ylabel('Energy [eV]')
 legend('Ecb', 'Evb', 'Efn', 'Efp')
@@ -102,7 +105,7 @@ legend('Jndrift', 'Jndiff','Jpdrift', 'Jpdiff','JtotDD', 'Jtot')
 if p.JV == 1
         
     figure(11)
-    semilogy(Vapp_arr, median(Jtotdd, 2))
+    semilogy(Vapp_arr, Jtotdd(:, end))
     xlabel('V_{app} [V]')
     ylabel('Current Density [A cm^-2]');
     grid off;
