@@ -1,4 +1,4 @@
-function [sol_eq] = equilibrate
+function [sol_eq, sol_i_eq] = equilibrate
 % Uses analytical initial conditions and runs to equilibrium
 % Note that tmax is consistently adjusted to appropriate values for to
 % ensure there are numerous mesh points where large gradients in the time
@@ -41,42 +41,41 @@ p.taup_htl = 1e6;
 p.tmesh_type = 2;
 p.tpoints = 100;
 
-p.Ana = 0;
+p.Ana = 1;
 p.JV = 0;
 p.Vapp = 0;
 p.Int = 0;
 p.pulseon = 0; 
 p.OC = 0;
-p.BC = 2;
 p.tmesh_type = 2;
 p.tmax = 1e-9;
 p.t0 = p.tmax/1e4;
 
-%% Switch off mbilities
-p.mue_i = 0;          % electron mobility
-p.muh_i = 0;      % hole mobility
-p.mue_p = 0;
-p.muh_p = 0;
-p.mue_n = 0;
-p.muh_n = 0;
-p.mui = 0;
-
-%% Initial solution with zero mobility
-disp('Initial solution, zero mobility')
-sol = pindrift(sol, p);
-disp('Complete')
-
-% Switch on mobilities
-p.mue_i = mue_i;          % electron mobility
-p.muh_i = muh_i;      % hole mobility
-p.mue_p = mue_p;
-p.muh_p = muh_p;
-p.mue_n = mue_n;
-p.muh_n = muh_n;
+% %% Switch off mbilities
+% p.mue_i = 0;          % electron mobility
+% p.muh_i = 0;      % hole mobility
+% p.mue_p = 0;
+% p.muh_p = 0;
+% p.mue_n = 0;
+% p.muh_n = 0;
+% p.mui = 0;
+% 
+% %% Initial solution with zero mobility
+% disp('Initial solution, zero mobility')
+% sol = pindrift(sol, p);
+% disp('Complete')
+% 
+% % Switch on mobilities
+% p.mue_i = mue_i;          % electron mobility
+% p.muh_i = muh_i;      % hole mobility
+% p.mue_p = mue_p;
+% p.muh_p = muh_p;
+% p.mue_n = mue_n;
+% p.muh_n = muh_n;
 p.mui = 0;
 
 p.figson = 1;
-p.tmax = 1e-9;
+p.tmax = 1e-6;
 p.t0 = p.tmax/1e3;
 
 %% Soluition with mobility switched on
@@ -85,7 +84,7 @@ sol = pindrift(sol, p);
 
 p.Ana = 1;
 p.calcJ = 0;
-p.tmax = 1e-2;
+p.tmax = 1e-4;
 p.t0 = p.tmax/1e10;
 
 sol_eq = pindrift(sol, p);
@@ -145,6 +144,7 @@ p.t0 = p.tmax/1e3;
 
 ssol_eq = pindrift(ssol, p);
 disp('Complete')
+%}
 
 %% Equilibrium solutions with ion mobility switched on
 %% Closed circuit conditions
@@ -164,7 +164,7 @@ p.t0 = p.tmax/1e3;
 
 sol_i_eq = pindrift(sol, p);
 disp('Complete')
-
+%{
 %% Ion equilibrium with surface recombination
 disp('Switching on surface recombination')
 p.taun_etl = 1e-10;
