@@ -1,4 +1,4 @@
-function [sol_eq, sol_i_eq, ssol_eq, ssol_i_eq, sol_i_eq_SR, ssol_i_eq_SR, ssol_i_1S_SR ] = equilibrate
+function [sol_eq] = equilibrate
 % Uses analytical initial conditions and runs to equilibrium
 % Note that tmax is consistently adjusted to appropriate values for to
 % ensure there are numerous mesh points where large gradients in the time
@@ -39,7 +39,7 @@ p.taup_htl = 1e6;
 
 %% General initial parameters
 p.tmesh_type = 2;
-p.tpoints = 200;
+p.tpoints = 100;
 
 p.Ana = 0;
 p.JV = 0;
@@ -47,7 +47,7 @@ p.Vapp = 0;
 p.Int = 0;
 p.pulseon = 0; 
 p.OC = 0;
-p.BC = 1;
+p.BC = 2;
 p.tmesh_type = 2;
 p.tmax = 1e-9;
 p.t0 = p.tmax/1e4;
@@ -90,7 +90,7 @@ p.t0 = p.tmax/1e10;
 
 sol_eq = pindrift(sol, p);
 disp('Complete')
-
+%{
 %% Set up solution for open circuit
 disp('Switching boundary conditions to zero flux')
 %p.Ana = 0;
@@ -256,6 +256,7 @@ ssol_i_1S_SR = pindrift(ssol_i_eq_SR, p);
 
 disp('Complete')
 
+%}
 
 disp('EQUILIBRATION COMPLETE')
 toc
