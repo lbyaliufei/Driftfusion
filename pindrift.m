@@ -186,76 +186,67 @@ end
 % f indicates flux terms
 % s indicates source terms - see pdepe help for how these are implemented - be careful of signs! 
 
-c = [1      % electron density
-     1      % hole density
+% p-type
+if  x <= p.tp 
+  
+nn = p.N0*exp((u(1)-(p.EA-u(4)))/(p.kB*p.T));
+pp = p.N0*exp(((p.IP-u(4))-u(2))/(p.kB*p.T));
+
+c = [nn      % electron density
+     pp      % hole density
      1      % mobile ion density
      0];    % electric potential
 
-% p-type
-if x >= 0 && x <= p.tp - p.tscr
-
- f = [(p.mue_p*(u(1)*-DuDx(4)+p.kB*p.T*DuDx(1)));
-     (p.muh_p*(u(2)*DuDx(4)+p.kB*p.T*DuDx(2)));     
-     0;                                         % Ion mobility is switched off in the contact regions
-     DuDx(4);];                                  
- 
- % source terms - for electrons and hole the first term is radiative rec,
- % second term is SRH recombination
- s = [ - p.kradhtl*((u(1)*u(2))-(p.ni^2)) - (((u(1)*u(2))-p.ni^2)/((p.taun_htl*(u(2)+p.pthtl)) + (p.taup_htl*(u(1)+p.nthtl))));
-       - p.kradhtl*((u(1)*u(2))-(p.ni^2)) - (((u(1)*u(2))-p.ni^2)/((p.taun_htl*(u(2)+p.pthtl)) + (p.taup_htl*(u(1)+p.nthtl))));
-      0;
-      (p.q/p.eppp)*(-u(1)+u(2)-p.NA+u(3)-p.NI);];
-  
-elseif x > p.tp - p.tscr && x <= p.tp
-    
- f = [(p.mue_p*(u(1)*-DuDx(4)+p.kB*p.T*DuDx(1)));
-     (p.muh_p*(u(2)*DuDx(4)+p.kB*p.T*DuDx(2)));     
-     0;
-     DuDx(4);];                                  
-
- s = [ - p.kradhtl*((u(1)*u(2))-(p.ni^2)) - (((u(1)*u(2))-p.ni^2)/((p.taun_htl*(u(2)+p.pthtl)) + (p.taup_htl*(u(1)+p.nthtl)))); %- klincon*min((u(1)- htln0), (u(2)- htlp0)); % 
-       - p.kradhtl*((u(1)*u(2))-(p.ni^2)) - (((u(1)*u(2))-p.ni^2)/((p.taun_htl*(u(2)+p.pthtl)) + (p.taup_htl*(u(1)+p.nthtl)))); %- kradhtl*((u(1)*u(2))-(ni^2)); %- klincon*min((u(1)- htln0), (u(2)- htlp0)); % - (((u(1)*u(2))-ni^2)/((taun_htl*(u(2)+pthtl)) + (taup_htl*(u(1)+nthtl))));
-      0;
-      (p.q/p.eppp)*(-u(1)+u(2)+u(3)-p.NI-p.NA);];
- 
-% Intrinsic
-elseif x > p.tp && x < p.tp + p.ti
-    
-   f = [(p.mue_i*(u(1)*-DuDx(4)+p.kB*p.T*DuDx(1)));
-     (p.muh_i*(u(2)*DuDx(4)+p.kB*p.T*DuDx(2))); 
+   f = [-p.mue_i*nn*DuDx(1);
+     p.muh_i*pp*DuDx(2);
      (p.mui*(u(3)*DuDx(4)+p.kB*p.T*DuDx(3))); 
      DuDx(4);];                                     
 
- s = [g - p.krad*((u(1)*u(2))-(p.ni^2)) - (((u(1)*u(2))-p.ni^2)/((p.taun_i*(u(2)+p.pti)) + (p.taup_i*(u(1)+p.nti)))); 
-      g - p.krad*((u(1)*u(2))-(p.ni^2)) - (((u(1)*u(2))-p.ni^2)/((p.taun_i*(u(2)+p.pti)) + (p.taup_i*(u(1)+p.nti))));
+ s = [g - p.krad*((nn*pp)-(p.ni^2));% - (((nn*pp)-p.ni^2)/((p.taun_htl*(pp+p.pthtl)) + (p.taup_htl*(nn+p.nthtl))));
+      g - p.krad*((nn*pp)-(p.ni^2));% - (((nn*pp)-p.ni^2)/((p.taun_htl*(pp+p.pthtl)) + (p.taup_htl*(nn+p.nthtl))));
       0;
-      (p.q/p.eppi)*(-u(1)+u(2)+u(3)-p.NI);]; 
+      (p.q/(p.epp0*p.eppp))*(-nn+pp+u(3)-p.NI-p.NA);]; 
+    
+% Intrinsic
+elseif x >= p.tp && x < p.tp + p.ti
 
-% n-type
-elseif x >= p.tp + p.ti && x < p.tp + p.ti + p.tscr
+nn = p.N0*exp((u(1)-(p.EA-u(4)))/(p.kB*p.T));
+pp = p.N0*exp(((p.IP-u(4))-u(2))/(p.kB*p.T));
+
+c = [nn      % electron density
+     pp      % hole density
+     1      % mobile ion density
+     0];    % electric potential
+
+   f = [-p.mue_i*nn*DuDx(1);
+     p.muh_i*pp*DuDx(2);
+     (p.mui*(u(3)*DuDx(4)+p.kB*p.T*DuDx(3))); 
+     DuDx(4);];                                     
+
+ s = [g - p.krad*((nn*pp)-(p.ni^2));% - ((nn*pp)-p.ni^2)/((p.taun_i*(pp+p.pti)) + (p.taup_i*(nn+p.nti))); % - (((u(1)*u(2))-p.ni^2)/((p.taun_i*(u(2)+p.pti)) + (p.taup_i*(u(1)+p.nti)))); 
+      g - p.krad*((nn*pp)-(p.ni^2));% - ((nn*pp)-p.ni^2)/((p.taun_i*(pp+p.pti)) + (p.taup_i*(nn+p.nti))); ;% - (((u(1)*u(2))-p.ni^2)/((p.taun_i*(u(2)+p.pti)) + (p.taup_i*(u(1)+p.nti))));
+      0;
+      (p.q/(p.epp0*p.eppi))*(-nn+pp+u(3)-p.NI);]; 
   
- f = [(p.mue_n*(u(1)*-DuDx(4)+p.kB*p.T*DuDx(1)));
-     (p.muh_n*(u(2)*DuDx(4)+p.kB*p.T*DuDx(2)));      
-     0;
-     DuDx(4)];                                      
+elseif x >= p.tp + p.ti  % x <= p.xmax
 
-s = [ - p.kradetl*((u(1)*u(2))-(p.ni^2)) - (((u(1)*u(2))-p.ni^2)/((p.taun_etl*(u(2)+p.ptetl)) + (p.taup_etl*(u(1)+p.ntetl))));   %- kradetl*((u(1)*u(2))-(ni^2)); %- klincon*min((u(1)- etln0), (u(2)- etlp0)); %  - (((u(1)*u(2))-ni^2)/((taun_etl*(u(2)+ptetl)) + (taup_etl*(u(1)+ntetl))));
-      - p.kradetl*((u(1)*u(2))-(p.ni^2)) - (((u(1)*u(2))-p.ni^2)/((p.taun_etl*(u(2)+p.ptetl)) + (p.taup_etl*(u(1)+p.ntetl))));   %- kradetl*((u(1)*u(2))-(ni^2)); % - klincon*min((u(1)- etln0), (u(2)- etlp0)); %- (((u(1)*u(2))-ni^2)/((taun_etl*(u(2)+ptetl)) + (taup_etl*(u(1)+ntetl))));
+nn = p.N0*exp((u(1)-(p.EA-u(4)))/(p.kB*p.T));
+pp = p.N0*exp(((p.IP-u(4))-u(2))/(p.kB*p.T));
+
+c = [nn      % electron density
+     pp      % hole density
+     1      % mobile ion density
+     0];    % electric potential
+
+   f = [-p.mue_i*nn*DuDx(1);
+     p.muh_i*pp*DuDx(2);
+     (p.mui*(u(3)*DuDx(4)+p.kB*p.T*DuDx(3))); 
+     DuDx(4);];                                     
+
+ s = [g - p.krad*((nn*pp)-(p.ni^2));% - (((nn*pp)-p.ni^2)/((p.taun_etl*(pp+p.ptetl)) + (p.taup_etl*(nn+p.ntetl))));% - (((u(1)*u(2))-p.ni^2)/((p.taun_i*(u(2)+p.pti)) + (p.taup_i*(u(1)+p.nti)))); 
+      g - p.krad*((nn*pp)-(p.ni^2));% - (((nn*pp)-p.ni^2)/((p.taun_etl*(pp+p.ptetl)) + (p.taup_etl*(nn+p.ntetl))));% - (((u(1)*u(2))-p.ni^2)/((p.taun_i*(u(2)+p.pti)) + (p.taup_i*(u(1)+p.nti))));
       0;
-      (p.q/p.eppn)*(-u(1)+u(2)+u(3)-p.NI+p.ND);];%+ptetl-ntetl)];
-
-  % n-type
-elseif x >= p.tp + p.ti + p.tscr && x <= p.xmax
-  
- f = [(p.mue_n*(u(1)*-DuDx(4)+p.kB*p.T*DuDx(1)));
-     (p.muh_n*(u(2)*DuDx(4)+p.kB*p.T*DuDx(2)));      
-     0;
-     DuDx(4)];                                      
-
-s = [ - p.kradetl*((u(1)*u(2))-(p.ni^2)) - (((u(1)*u(2))-p.ni^2)/((p.taun_etl*(u(2)+p.ptetl)) + (p.taup_etl*(u(1)+p.ntetl))));   %- kradetl*((u(1)*u(2))-(ni^2)); %- klincon*min((u(1)- etln0), (u(2)- etlp0)); %  - (((u(1)*u(2))-ni^2)/((taun_etl*(u(2)+ptetl)) + (taup_etl*(u(1)+ntetl))));
-      - p.kradetl*((u(1)*u(2))-(p.ni^2)) - (((u(1)*u(2))-p.ni^2)/((p.taun_etl*(u(2)+p.ptetl)) + (p.taup_etl*(u(1)+p.ntetl))));   %- kradetl*((u(1)*u(2))-(ni^2)); % - klincon*min((u(1)- etln0), (u(2)- etlp0)); %- (((u(1)*u(2))-ni^2)/((taun_etl*(u(2)+ptetl)) + (taup_etl*(u(1)+ntetl))));
-      0;
-      (p.q/p.eppn)*(-u(1)+u(2)+p.ND+u(3)-p.NI);];%+ptetl-ntetl)];
+      (p.q/(p.eppn*p.epp0))*(-nn+pp+p.ND+u(3)-p.NI);]; 
 
 end
 
@@ -282,45 +273,51 @@ if length(varargin) == 0 || length(varargin) >= 1 && max(max(max(varargin{1, 1}.
     % p-type
     if x < (p.tp - p.wp)
     
-       u0 = [p.htln0;
-             p.htlp0;
+       u0 = [p.PhiA;
+             p.PhiA;
               p.NI;
               0];  
 
     % p-type SCR    
     elseif  x >= (p.tp - p.wp) && x < p.tp
 
-        u0 = [p.N0*exp((p.Efnside + p.EA + p.q*((((p.q*p.NA)/(2*p.eppi))*(x-p.tp+p.wp)^2)))/(p.kB*p.T));                            %ni*exp((Efnside - (-q*((((q*NA)/(2*eppp))*(x-tp+wp)^2))))/(kB*T));
-              p.N0*exp(-(p.q*((((p.q*p.NA)/(2*p.eppi))*(x-p.tp+p.wp)^2)) + p.EA + p.Eg + p.Efpside)/(p.kB*p.T));
+        u0 = [p.PhiA;
+             p.PhiA;
               p.NI;
-              (((p.q*p.NA)/(2*p.eppi))*(x-p.tp+p.wp)^2)];
+              (((p.q*p.NA)/(2*p.eppi*p.epp0))*(x-p.tp+p.wp)^2)];
 
     % Intrinsic
 
-    elseif x >= p.tp && x <= p.tp+ p.ti
+    elseif x >= p.tp && x < p.tp+ p.ti
 
-        u0 =  [p.N0*exp((p.Efnside + p.EA + p.q*(((x - p.tp)*((1/p.ti)*(p.Vbi - ((p.q*p.NA*p.wp^2)/(2*p.eppi)) - ((p.q*p.ND*p.wn^2)/(2*p.eppi))))) + ((p.q*p.NA*p.wp^2)/(2*p.eppi))))/(p.kB*p.T));
-                p.N0*exp(-(p.q*(((x - p.tp)*((1/p.ti)*(p.Vbi - ((p.q*p.NA*p.wp^2)/(2*p.eppi)) - ((p.q*p.ND*p.wn^2)/(2*p.eppi))))) + ((p.q*p.NA*p.wp^2)/(2*p.eppi))) + p.EA + p.Eg + p.Efpside)/(p.kB*p.T));
+        u0 =  [p.PhiA;
+             p.PhiA;
                 p.NI;
-                ((x - p.tp)*((1/p.ti)*(p.Vbi - ((p.q*p.NA*p.wp^2)/(2*p.eppi)) - ((p.q*p.ND*p.wn^2)/(2*p.eppi))))) + ((p.q*p.NA*p.wp^2)/(2*p.eppi)) ;];
+                ((x - p.tp)*((1/p.ti)*(p.Vbi - ((p.q*p.NA*p.wp^2)/(2*p.eppi*p.epp0)) - ((p.q*p.ND*p.wn^2)/(2*p.eppi*p.epp0))))) + ((p.q*p.NA*p.wp^2)/(2*p.eppi*p.epp0)) ;];
 
     % n-type SCR    
-    elseif  x > (p.tp+p.ti) && x <= (p.tp + p.ti + p.wn)
+    elseif  x >= (p.tp+p.ti) && x < (p.tp + p.ti + p.wn)
 
-        u0 = [p.N0*exp((p.Efnside + p.EA + p.q*((((-(p.q*p.ND)/(2*p.eppi))*(x-p.ti-p.tp-p.wn)^2) + p.Vbi)))/(p.kB*p.T));
-              p.N0*exp(-(p.q*((((-(p.q*p.ND)/(2*p.eppi))*(x-p.ti-p.tp-p.wn)^2) + p.Vbi)) + p.EA + p.Eg + p.Efpside)/(p.kB*p.T));
+        u0 = [p.PhiA;
+             p.PhiA;
               p.NI;
-              (((-(p.q*p.ND)/(2*p.eppi))*(x-p.tp - p.ti -p.wn)^2) + p.Vbi)]; 
+              (((-(p.q*p.ND)/(2*p.eppi*p.epp0))*(x-p.tp - p.ti -p.wn)^2) + p.Vbi)]; 
 
     % n-type
-    elseif x > (p.tp + p.ti + p.wn) && x <= p.xmax
+    elseif x >= (p.tp + p.ti + p.wn) %&& x <= p.xmax
 
-         u0 = [p.etln0;
-               p.etlp0;
+         u0 = [p.PhiA;
+             p.PhiA;
                p.NI;
                p.Vbi];
-    end      
-    
+    end     
+  
+%  u0 =  [p.PhiA;
+%         p.PhiA;
+%         p.NI;
+%         0];
+%    
+
 
 %% Previous solution as initial conditions
 elseif length(varargin) == 1 || length(varargin) >= 1 && max(max(max(varargin{1, 1}.sol))) ~= 0
@@ -404,7 +401,7 @@ else
     elseif p.BC == 1
         
         pl = [0;
-            (ul(2)-p.htlp0);
+            ul(2) - p.PhiA;
             0;
             -ul(4);];
         
@@ -413,7 +410,7 @@ else
             1;
             0];
         
-        pr = [(ur(1)-p.etln0);
+        pr = [ur(1) - (p.PhiC-(p.Vbi-p.Vapp));
             0;
             0;
             -ur(4)+p.Vbi-p.Vapp;];
@@ -425,10 +422,11 @@ else
         
     % Non- selective contacts - fixed charge densities for majority and minority carriers
     % equivalent to infinite surface recombination velocity for minority carriers
+    % CURRENT CALCULATION NOT CURRENTLY ACCURATE WITH THIS BC
     elseif p.BC == 2
         
-        pl = [ul(1) - p.htln0;
-            ul(2) - p.htlp0;
+        pl = [ul(1) - p.PhiA;
+            ul(2) - p.PhiA;
             0;
             -ul(4);];
         
@@ -437,8 +435,8 @@ else
             1;
             0];
         
-        pr = [ur(1) - p.etln0;
-            ur(2) - p.etlp0;
+        pr = [ur(1) - (p.PhiC-(p.Vbi-p.Vapp));
+            ur(2) - (p.PhiC-(p.Vbi-p.Vapp));
             0;
             -ur(4)+p.Vbi-p.Vapp;];
         
@@ -446,7 +444,7 @@ else
             0;
             1;
             0];
-    
+        
     end
 end
 
@@ -468,7 +466,7 @@ solstruct.p = p;
 
 if p.Ana == 1
     
-    [Voc, Vapp_arr, Jn, ~, ~] = pinAna(solstruct);
+    [Voc, Vapp_arr, Jn] = pinAna(solstruct);
     
     if p.OC == 1
         
