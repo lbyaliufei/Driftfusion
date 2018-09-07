@@ -202,8 +202,8 @@ c = [nn      % electron density
      0;%(p.mui*(u(3)*DuDx(4)+p.kB*p.T*DuDx(3))); 
      DuDx(4);];                                     
 
- s = [g - p.krad*((nn*pp)-(p.ni^2));% - (((nn*pp)-p.ni^2)/((p.taun_htl*(pp+p.pthtl)) + (p.taup_htl*(nn+p.nthtl))));
-      g - p.krad*((nn*pp)-(p.ni^2));% - (((nn*pp)-p.ni^2)/((p.taun_htl*(pp+p.pthtl)) + (p.taup_htl*(nn+p.nthtl))));
+ s = [g - p.krad*((nn*pp)-(p.ni^2)) - (((nn*pp)-p.ni^2)/((p.taun_htl*(pp+p.pthtl)) + (p.taup_htl*(nn+p.nthtl))));
+      g - p.krad*((nn*pp)-(p.ni^2)) - (((nn*pp)-p.ni^2)/((p.taun_htl*(pp+p.pthtl)) + (p.taup_htl*(nn+p.nthtl))));
       0;
       (p.q/(p.epp0*p.eppp))*(-nn+pp+u(3)-p.NI-p.NA);]; 
     
@@ -243,8 +243,8 @@ f = [-p.mue_i*nn*DuDx(1);
      0;%(p.mui*(u(3)*DuDx(4)+p.kB*p.T*DuDx(3))); 
      DuDx(4);];                                     
 
- s = [g - p.krad*((nn*pp)-(p.ni^2));% - (((nn*pp)-p.ni^2)/((p.taun_etl*(pp+p.ptetl)) + (p.taup_etl*(nn+p.ntetl))));% - (((u(1)*u(2))-p.ni^2)/((p.taun_i*(u(2)+p.pti)) + (p.taup_i*(u(1)+p.nti)))); 
-      g - p.krad*((nn*pp)-(p.ni^2));% - (((nn*pp)-p.ni^2)/((p.taun_etl*(pp+p.ptetl)) + (p.taup_etl*(nn+p.ntetl))));% - (((u(1)*u(2))-p.ni^2)/((p.taun_i*(u(2)+p.pti)) + (p.taup_i*(u(1)+p.nti))));
+ s = [g - p.krad*((nn*pp)-(p.ni^2)) - (((nn*pp)-p.ni^2)/((p.taun_etl*(pp+p.ptetl)) + (p.taup_etl*(nn+p.ntetl))));% - (((u(1)*u(2))-p.ni^2)/((p.taun_i*(u(2)+p.pti)) + (p.taup_i*(u(1)+p.nti)))); 
+      g - p.krad*((nn*pp)-(p.ni^2)) - (((nn*pp)-p.ni^2)/((p.taun_etl*(pp+p.ptetl)) + (p.taup_etl*(nn+p.ntetl))));% - (((u(1)*u(2))-p.ni^2)/((p.taun_i*(u(2)+p.pti)) + (p.taup_i*(u(1)+p.nti))));
       0;
       (p.q/(p.eppn*p.epp0))*(-nn+pp+p.ND+u(3)-p.NI);]; 
 
