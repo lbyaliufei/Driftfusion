@@ -35,8 +35,8 @@ for i=1:length(p.t)
     [Efnloc,dEfnlocdx] = pdeval(0,p.x,sol(i,:,1),p.x);
     [Efploc,dEfplocdx] = pdeval(0,p.x,sol(i,:,2),p.x);
     
-    Jn(i,:) = p.e*p.mue_i.*nn(i,:).*Efnloc;%gradient(Efn(i,:), p.x);
-    Jp(i,:) = p.e*p.mue_i.*pp(i,:).*Efploc;%gradient(Efp(i,:), p.x);
+    Jn(i,:) = p.e*p.mue_i.*nn(i,:).*dEfnlocdx;%  gradient(Efn(i,:), p.x);
+    Jp(i,:) = p.e*p.mue_i.*pp(i,:).*dEfplocdx;%   gradient(Efp(i,:), p.x);
     Jtot(i,:) = Jn(i,:) + Jp(i,:);
 end
 
@@ -105,11 +105,10 @@ legend('Jndrift', 'Jndiff','Jpdrift', 'Jpdiff','JtotDD', 'Jtot')
 if p.JV == 1
         
     figure(11)
-    semilogy(Vapp_arr, Jtotdd(:, end))
+    semilogy(Vapp_arr, median(Jtot,2))
     xlabel('V_{app} [V]')
     ylabel('Current Density [A cm^-2]');
     grid off;
-    
     
 end
 
