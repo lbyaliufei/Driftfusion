@@ -40,12 +40,12 @@ end
 
 % General Parameters
 p.OC = 0;                 % Closed circuit = 0, Open Circuit = 1 
-p.Int = 1;                % Bias Light intensity (Suns Eq.)
+p.Int = 0;                % Bias Light intensity (Suns Eq.)
 p.G0 = 2.5e21;            % Uniform generation rate @ 1 Sun
 p.tmax = 1e-3;            % Time
 p.pulseon = 0;            % Switch pulse on TPC or TPV
 p.Vapp = 0;               % Applied bias
-p.BC = 1;                 % Boundary Conditions. Must be set to one for first solution
+p.BC = 2;                 % Boundary Conditions. Must be set to one for first solution
 p.figson = 1;             % Toggle figures on/off
 p.meshx_figon = 0;        % Toggles x-mesh figures on/off
 p.mesht_figon = 0;        % Toggles t-mesh figures on/off
@@ -128,9 +128,9 @@ end
 
 p.mui = 1e-10; % ion mobility
 
-p.eppp = 20*p.epp0;         % Dielectric constant p-type
-p.eppi = 20*p.epp0;         % Dielectric constant intrinsic
-p.eppn = 20*p.epp0;         % Dielectric constant n-type
+p.eppp = 20;         % Dielectric constant p-type
+p.eppi = 20;         % Dielectric constant intrinsic
+p.eppn = 20;         % Dielectric constant n-type
  
 % Energy levels
 p.EA = 0;                          % Conduction band energy
@@ -204,7 +204,7 @@ p.RelTol = 1e-3;
 
 % Space Charge Region- initial guess required with trial and error better
 % than analytical solution
-p.wp = 25e-7;  %((-ti*NA*q) + ((NA^0.5)*(q^0.5)*(((ti^2)*NA*q) + (4*eppi*Vbi))^0.5))/(2*NA*q);
+p.wp = 15e-7; %((-p.ti*p.NA*p.q) + ((p.NA^0.5)*(p.q^0.5)*(((p.ti^2)*p.NA*p.q) + (4*p.eppi*p.epp0*p.Vbi))^0.5))/(2*p.NA*p.q);
 p.wn = p.wp;
 
 p.wscr = p.wp + p.ti + p.wn;    % width of space charge region
