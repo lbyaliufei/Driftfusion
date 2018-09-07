@@ -1,5 +1,116 @@
-function [Voc, Vapp_arr, Jtot, Efn, Efp] = pinAna(solstruct)
+function [Voc, Vapp_arr, Jtot] = pinAna(solstruct)
 
+
+% Simple structure names
+sol = solstruct.sol;
+p = solstruct.p;
+
+%% ANALYSIS %%
+xnm = p.x*1e7;    % x in nm for plotting
+
+% split the solution into its component parts (e.g. electrons, holes and efield)
+Efn = sol(:,:,1);     % electrons
+Efp = sol(:,:,2);     % holes
+a = sol(:,:,3);     % mobile ions
+V = sol(:,:,4);     % electric potential
+
+% Calculate energy levels and chemical potential         
+V = V - p.EA;                                % Electric potential
+Ecb = p.EA-V-p.EA;                             % Conduction band potential
+Evb = p.IP-V-p.EA;                             % Valence band potential
+% Efn = real(-V+p.Ei+(p.kB*p.T/p.q)*log(n/p.ni));      % Electron quasi-Fermi level 
+% Efp = real(-V+p.Ei-(p.kB*p.T/p.q)*log(P/p.ni));      % Hole quasi-Fermi level
+% Phin = real(p.Ei+(p.kB*p.T/p.q)*log(n/p.ni)-p.EA);     % Chemical Potential electron
+% Phip = real(p.Ei-(p.kB*p.T/p.q)*log(P/p.ni)-p.EA);
+% Phi = Phin - Phip;
+
+nn = p.N0.*exp((Efn-Ecb)/(p.kB*p.T));
+pp = p.N0.*exp((Evb-Efp)/(p.kB*p.T));
+
+%% Currents
+
+% electron and hole currents
+for i=1:length(p.t)
+    Jn(i,:) = p.e*p.mue_i.*nn(i,:).*gradient(Efn(i,:), p.x);
+    Jp(i,:) = p.e*p.mue_i.*pp(i,:).*gradient(Efp(i,:), p.x);
+    Jtot(i,:) = Jn(i,:) + Jp(i,:);
+end
+
+
+Voc = 0;
+
+% Drift and diffusion currents
+for i=1:length(p.t)
+
+    Jndrift(i,:)  = p.e*nn(i,:)*p.mue_i.*gradient(-V(i,:), p.x);
+    Jndiff(i,:)  = p.e*p.mue_i*p.kB*p.T.*gradient(nn(i,:), p.x);  % requires electron charge because units of kB are eV
+    Jpdrift(i,:) = p.e*pp(i,:)*p.muh_i.*gradient(-V(i,:), p.x);
+    Jpdiff(i,:) = -p.e*p.muh_i*p.kB*p.T.*gradient(pp(i,:), p.x);
+    Jtotdd(i,:) = Jndrift(i,:)+Jndiff(i,:)+Jpdrift(i,:)+Jpdiff(i,:);
+end
+
+switch p.JV % Current voltage array
+    case 1
+        Vapp_arr = p.Vstart + ((p.Vend-p.Vstart)*p.t*(1/p.tmax));
+    case 2
+        Vapp_arr = p.Vapp_func(p.Vapp_params, p.t);
+    otherwise
+        Vapp_arr = NaN;
+end
+   
+
+%% GRAPHING %%
+
+%% Spatial mesh
+if p.meshx_figon == 1
+    
+    xmir = p.x;
+    pxmir = 1:1:length(p.x);
+    
+    figure(1010);
+    plot(xmir, pxmir, '.');
+    xlabel('Position');
+    ylabel('Point');
+    
+end
+
+figure(1)
+plot(xnm, Ecb(end, :), xnm, Evb(end, :), xnm, Efn(end, :), '-', xnm, Efp(end, :), '-')
+xlabel('Position [nm]')
+ylabel('Energy [eV]')
+legend('Ecb', 'Evb', 'Efn', 'Efp')
+
+figure(2)
+semilogy(xnm, nn(end, :), xnm, pp(end, :))
+xlabel('Position [nm]')
+ylabel('Carrier density [cm-3]')
+legend('n', 'p')
+
+figure(3)
+plot(xnm, Jn(end, :), xnm, Jp(end, :), xnm, Jtot(end,:))
+xlabel('Position [nm]')
+ylabel('Current density [Acm-2]')
+legend('Jn', 'Jp', 'Jtot')
+
+figure(4)
+plot(xnm, Jndrift(end, :), xnm, Jndiff(end, :), xnm, Jpdrift(end, :), xnm, Jpdiff(end, :), xnm, Jtotdd(end,:), xnm, Jtot(end,:))
+xlabel('Position [nm]')
+ylabel('Current density [Acm-2]')
+legend('Jndrift', 'Jndiff','Jpdrift', 'Jpdiff','JtotDD', 'Jtot')
+
+
+if p.JV == 1
+        
+    figure(11)
+    semilogy(Vapp_arr, median(Jtotdd, 2))
+    xlabel('V_{app} [V]')
+    ylabel('Current Density [A cm^-2]');
+    grid off;
+    
+    
+end
+
+%{
 % pinAna analyses the input solution and plots various useful graphs.
 % Many plots are available to the user although currently these are
 % commented out. In future 
@@ -502,4 +613,4 @@ grid off;
 
 %}
 
-%% Delete unwanted fields from params
+%}
