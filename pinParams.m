@@ -45,9 +45,9 @@ p.G0 = 2.5e21;            % Uniform generation rate @ 1 Sun
 p.tmax = 1e-3;            % Time
 p.pulseon = 0;            % Switch pulse on TPC or TPV
 p.Vapp = 0;               % Applied bias
-p.BC = 1;                 % Boundary Conditions. Must be set to one for first solution
+p.BC = 2;                 % Boundary Conditions. Must be set to one for first solution
 p.figson = 1;             % Toggle figures on/off
-p.meshx_figon = 0;        % Toggles x-mesh figures on/off
+p.meshx_figon = 1;        % Toggles x-mesh figures on/off
 p.mesht_figon = 0;        % Toggles t-mesh figures on/off
 p.side = 1;               % illumination side 1 = EE, 2 = SE
 p.calcJ = 0;              % Calculates Currents- slows down solving calcJ = 1, calculates DD currents at every position, calcJ = 2, calculates DD at boundary.
@@ -172,10 +172,10 @@ p.kradhtl = p.krad;         % [cm3 s-1] HTL Radiative Recombination coefficient
 
 % SRH recmobination in the contact regions, 
 % U = (np-ni^2)/(taun(p+pt) +taup(n+nt))
-p.taun_etl = 1e6;         % [s] SRH time constant for electrons
-p.taup_etl = 1e6;    % [s] SRH time constant for holes
-p.taun_htl = 1e6;        %%%% USE a high value of (e.g.) 1 to switch off
-p.taup_htl = 1e6;    %%%% NOT 0- these variables are in the denominator
+p.taun_etl = 1e-8;         % [s] SRH time constant for electrons
+p.taup_etl = 1e-8;    % [s] SRH time constant for holes
+p.taun_htl = 1e-8;        %%%% USE a high value of (e.g.) 1 to switch off
+p.taup_htl = 1e-8;    %%%% NOT 0- these variables are in the denominator
 p.taun_i = 1e6;
 p.taup_i = 1e6;
 p.sn = 0;%1e7;            % [cm s-1] electron surface recombination velocity (rate constant for recombination at interface)
