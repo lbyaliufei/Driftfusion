@@ -228,7 +228,7 @@ c = [nn      % electron density
       0;
       (p.q/(p.epp0*p.eppi))*(-nn+pp+u(3)-p.NI);]; 
   
-elseif x >= p.tp + p.ti  % x <= p.xmax
+elseif x >= p.tp + p.ti
 
 nn = p.N0*exp((u(1)-(p.EA-u(4)))/(p.kB*p.T));
 pp = p.N0*exp(((p.IP-u(4))-u(2))/(p.kB*p.T));
@@ -238,7 +238,7 @@ c = [nn      % electron density
      1      % mobile ion density
      0];    % electric potential
 
-   f = [-p.mue_i*nn*DuDx(1);
+f = [-p.mue_i*nn*DuDx(1);
      p.muh_i*pp*DuDx(2);
      (p.mui*(u(3)*DuDx(4)+p.kB*p.T*DuDx(3))); 
      DuDx(4);];                                     
