@@ -117,7 +117,7 @@ t = meshgen_t(p);
 %% Call solver
 
 % SOLVER OPTIONS  - limit maximum time step size during integration.
-options = odeset('MaxOrder',5, 'NonNegative', [1, 1, 1, 0], 'RelTol', p.RelTol); % Reduce RelTol to improve precision of solution
+options = odeset('MaxOrder',5, 'NonNegative', [1, 1, 1, 0], 'RelTol', p.RelTol, 'AbsTol', p.AbsTol); % Reduce RelTol to improve precision of solution
 
 % inputs with '@' are function handles to the subfunctions
 % below for the: equation, initial conditions, boundary conditions
@@ -199,7 +199,7 @@ c = [nn      % electron density
 
    f = [-p.mue_i*nn*DuDx(1);
      p.muh_i*pp*DuDx(2);
-     (p.mui*(u(3)*DuDx(4)+p.kB*p.T*DuDx(3))); 
+     0;%(p.mui*(u(3)*DuDx(4)+p.kB*p.T*DuDx(3))); 
      DuDx(4);];                                     
 
  s = [g - p.krad*((nn*pp)-(p.ni^2));% - (((nn*pp)-p.ni^2)/((p.taun_htl*(pp+p.pthtl)) + (p.taup_htl*(nn+p.nthtl))));
@@ -240,7 +240,7 @@ c = [nn      % electron density
 
 f = [-p.mue_i*nn*DuDx(1);
      p.muh_i*pp*DuDx(2);
-     (p.mui*(u(3)*DuDx(4)+p.kB*p.T*DuDx(3))); 
+     0;%(p.mui*(u(3)*DuDx(4)+p.kB*p.T*DuDx(3))); 
      DuDx(4);];                                     
 
  s = [g - p.krad*((nn*pp)-(p.ni^2));% - (((nn*pp)-p.ni^2)/((p.taun_etl*(pp+p.ptetl)) + (p.taup_etl*(nn+p.ntetl))));% - (((u(1)*u(2))-p.ni^2)/((p.taun_i*(u(2)+p.pti)) + (p.taup_i*(u(1)+p.nti)))); 
