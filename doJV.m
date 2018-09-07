@@ -1,4 +1,4 @@
-function [JV_dk_f, JV_dk_r, JV_1S_f, JV_1S_r] = doJV(sol_ini, JVscan_rate, mui, Vstart, Vend)
+function [JV_dk_f, JV_dk_r] = doJV(sol_ini, JVscan_rate, JV_scanpoints, mui, Vstart, Vend)
 
 % A procedure for running JV scans using pindrift
 %% Input arguments
@@ -27,7 +27,8 @@ p.calcJ = 0;
 p.tmax = abs(p.Vend- p.Vstart)/JVscan_rate;           % Scan time determined by mobility- ensures cell is stable at each point
 p.t0 = 0;
 p.tmesh_type = 1;
-p.tpoints = p.JVscan_pnts;
+p.JV_scanpoints = JV_scanpoints;
+p.tpoints = JV_scanpoints;
 
 %% Dark forward scan
 
@@ -52,7 +53,7 @@ JV_dk_r = pindrift(JV_dk_f, p);
 
 disp('Complete.')
 %% 1 Sun quasi equilibrium solution
-
+%{
 disp('1 Sun quasi-equilibrium solution')
 p.JV = 0;
 p.mui = 0;          % Switch ion mobility off for illumination step
@@ -92,7 +93,7 @@ p.Vend = Vstart;
 
 JV_1S_r = pindrift(JV_1S_f, p);
 disp('Complete.')
-
+%}
 figure(11)
 hold off
 disp('JV scan complete.')
