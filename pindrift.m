@@ -141,43 +141,52 @@ end
 
 % Beer Lambert or Transfer Matrix 1 Sun - NOT CURRENTLY IMPLEMENTED!
 if p.Int ~= 0 && p.OM ==1 || p.Int ~= 0 && p.OM == 2
-     
-      if x > p.tp && x < (p.tp+p.ti) 
-          g = p.Int*interp1(genspace, Gx1S, (p.x-p.tp));
-      else
-          g = 0;
-      end
- 
+    
+    if x > p.tp && x < (p.tp+p.ti)
+        g = p.Int*interp1(genspace, Gx1S, (p.x-p.tp));
+    else
+        g = 0;
+    end
+    
     % Add pulse
     if p.pulseon == 1
         if  t >= 10e-6 && t < p.pulselen + 10e-6
-           if x > p.tp && x < (p.tp+p.ti)
+            if x > p.tp && x < (p.tp+p.ti)
                 lasg = p.pulseint*interp1(genspace, GxLas, (x-p.tp));
                 g = g + lasg;
-           end
-        end
-    end
-  
-% Uniform Generation
-elseif p.OM == 0
-      
-      if p.Int ~= 0 && x > p.tp && x < (p.tp+p.ti)    
-           g = p.Int*p.G0;
-      else
-           g = 0;
-      end
-        
-        % Add pulse
-        if p.pulseon == 1
-            if  t >= p.pulsestart && t < p.pulselen + p.pulsestart
-                
-                g = g+(p.pulseint*p.G0);
-            
             end
         end
+    end
+    
+    % Uniform Generation
+elseif p.OM == 0
+    
+    if p.Int ~= 0 && x >= p.tp && x < (p.tp+p.ti)
         
+        if t < p.tmax
+            
+            g = (t/(p.tmax))*p.Int*p.G0;
+            
+        elseif t >= p.tmax
+            
+            g = p.Int*p.G0;
+            
+        end
+    else
+        g = 0;
+    end
+    
+    % Add pulse
+    if p.pulseon == 1
+        if  t >= p.pulsestart && t < p.pulselen + p.pulsestart
+            
+            g = g+(p.pulseint*p.G0);
+            
+        end
+    end
+    
 else
-        g = 0;    
+    g = 0;
 end
 
 %% Transport and continuity equations
@@ -202,8 +211,8 @@ c = [nn      % electron density
      0;%(p.mui*(u(3)*DuDx(4)+p.kB*p.T*DuDx(3))); 
      DuDx(4);];                                     
 
- s = [g - p.krad*((nn*pp)-(p.ni^2)) - (((nn*pp)-p.ni^2)/((p.taun_htl*(pp+p.pthtl)) + (p.taup_htl*(nn+p.nthtl))));
-      g - p.krad*((nn*pp)-(p.ni^2)) - (((nn*pp)-p.ni^2)/((p.taun_htl*(pp+p.pthtl)) + (p.taup_htl*(nn+p.nthtl))));
+ s = [g - p.krad*((nn*pp)-(p.ni^2));% - (((nn*pp)-p.ni^2)/((p.taun_htl*(pp+p.pthtl)) + (p.taup_htl*(nn+p.nthtl))));
+      g - p.krad*((nn*pp)-(p.ni^2));% - (((nn*pp)-p.ni^2)/((p.taun_htl*(pp+p.pthtl)) + (p.taup_htl*(nn+p.nthtl))));
       0;
       (p.q/(p.epp0*p.eppp))*(-nn+pp+u(3)-p.NI-p.NA);]; 
     
@@ -243,8 +252,8 @@ f = [-p.mue_i*nn*DuDx(1);
      0;%(p.mui*(u(3)*DuDx(4)+p.kB*p.T*DuDx(3))); 
      DuDx(4);];                                     
 
- s = [g - p.krad*((nn*pp)-(p.ni^2)) - (((nn*pp)-p.ni^2)/((p.taun_etl*(pp+p.ptetl)) + (p.taup_etl*(nn+p.ntetl))));% - (((u(1)*u(2))-p.ni^2)/((p.taun_i*(u(2)+p.pti)) + (p.taup_i*(u(1)+p.nti)))); 
-      g - p.krad*((nn*pp)-(p.ni^2)) - (((nn*pp)-p.ni^2)/((p.taun_etl*(pp+p.ptetl)) + (p.taup_etl*(nn+p.ntetl))));% - (((u(1)*u(2))-p.ni^2)/((p.taun_i*(u(2)+p.pti)) + (p.taup_i*(u(1)+p.nti))));
+ s = [g - p.krad*((nn*pp)-(p.ni^2));% - (((nn*pp)-p.ni^2)/((p.taun_etl*(pp+p.ptetl)) + (p.taup_etl*(nn+p.ntetl))));% - (((u(1)*u(2))-p.ni^2)/((p.taun_i*(u(2)+p.pti)) + (p.taup_i*(u(1)+p.nti)))); 
+      g - p.krad*((nn*pp)-(p.ni^2));% - (((nn*pp)-p.ni^2)/((p.taun_etl*(pp+p.ptetl)) + (p.taup_etl*(nn+p.ntetl))));% - (((u(1)*u(2))-p.ni^2)/((p.taun_i*(u(2)+p.pti)) + (p.taup_i*(u(1)+p.nti))));
       0;
       (p.q/(p.eppn*p.epp0))*(-nn+pp+p.ND+u(3)-p.NI);]; 
 
