@@ -34,11 +34,19 @@ for i=1:length(p.t)
     
     [Efnloc,dEfnlocdx] = pdeval(0,p.x,sol(i,:,1),p.x);
     [Efploc,dEfplocdx] = pdeval(0,p.x,sol(i,:,2),p.x);
+    %dEfnlocdx = gradient(sol(i,:,1),p.x);
+    %dEfplocdx = gradient(sol(i,:,2),p.x);
     
-    Jn(i,:) = p.e*p.mue_i.*nn(i,:).*dEfnlocdx;%  gradient(Efn(i,:), p.x);
-    Jp(i,:) = p.e*p.mue_i.*pp(i,:).*dEfplocdx;%   gradient(Efp(i,:), p.x);
-    Jtot(i,:) = Jn(i,:) + Jp(i,:);
+    % fluxes
+    jn(i,:) = -p.mue_i.*nn(i,:).*dEfnlocdx;%  gradient(Efn(i,:), p.x);
+    jp(i,:) = -p.mue_i.*pp(i,:).*dEfplocdx;%   gradient(Efp(i,:), p.x);
+    
 end
+
+Jn = p.e*jn;
+Jp = p.e*jp;
+
+Jtot = Jn + Jp;
 
 Voc = 0;
 
