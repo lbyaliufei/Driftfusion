@@ -1,4 +1,4 @@
-function [sol_eq] = equilibrate
+function [sol_eq, sol_i_eq, sol_i_eq_SR] = equilibrate
 % Uses analytical initial conditions and runs to equilibrium
 % Note that tmax is consistently adjusted to appropriate values for to
 % ensure there are numerous mesh points where large gradients in the time
@@ -84,11 +84,13 @@ sol = pindrift(sol, p);
 
 p.Ana = 1;
 p.calcJ = 0;
-p.tmax = 1e-3;
+p.tmax = 1e-2;
 p.t0 = p.tmax/1e10;
 
 sol_eq = pindrift(sol, p);
 disp('Complete')
+
+%{
 %{
 %% Set up solution for open circuit
 disp('Switching boundary conditions to zero flux')
@@ -145,7 +147,7 @@ p.t0 = p.tmax/1e3;
 ssol_eq = pindrift(ssol, p);
 disp('Complete')
 %}
-%{
+
 %% Equilibrium solutions with ion mobility switched on
 %% Closed circuit conditions
 disp('Closed circuit equilibrium with ions')
@@ -164,7 +166,7 @@ p.t0 = p.tmax/1e3;
 
 sol_i_eq = pindrift(sol, p);
 disp('Complete')
-%{
+
 %% Ion equilibrium with surface recombination
 disp('Switching on surface recombination')
 p.taun_etl = 1e-10;
@@ -185,6 +187,7 @@ p.taup_etl = 1e6;
 p.taun_htl = 1e6;
 p.taup_htl = 1e6; 
 
+%{
 %% Symmetricise closed circuit condition
 disp('Symmetricise equilibriumion solution')
 symsol = symmetricize(sol_i_eq);
