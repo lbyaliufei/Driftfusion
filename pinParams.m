@@ -25,7 +25,7 @@ p.deltax = p.tint/p.pint;    % spacing in the interfacial region- requires for m
 
 % Parameters for spatial mesh of solution points - see meshgen_x for
 % xmesh_type specification
-p.xmesh_type = 1; 
+p.xmesh_type = 3; 
 p.xmax = p.tp + p.ti + p.tn;      % cm
 
 if p.xmesh_type == 1 || p.xmesh_type == 5
@@ -72,7 +72,7 @@ p.deltat = p.tmax/(1e2*p.tpoints);
 p.Vstart = 0;
 p.Vend = 1.2;
 p.JVscan_rate = 1;        % JV scan rate (Vs-1)
-p.JVscan_pnts = 600;
+p.JVscan_pnts = 100;
 
 %%%%%%%% TRANSIENT SETTINGS %%%%%%%%
 if p.pulseon && p.OC       % Record length for TPV
