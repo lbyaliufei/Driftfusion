@@ -164,12 +164,12 @@ elseif p.OM == 0
     if p.Int ~= 0 && x >= p.tp && x < (p.tp+p.ti)
         
 %         if t < p.tmax
-%             
-%             g = (t/(p.tmax))*p.Int*p.G0;
-%             
-%         elseif t >= p.tmax
             
-            g = p.Int*p.G0;
+            g = (t/(p.tmax))*p.Int*p.G0;
+            
+%         elseif t >= p.tmax
+%             
+%             g = p.Int*p.G0;
             
 %         end
     else
