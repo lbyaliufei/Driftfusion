@@ -1,4 +1,4 @@
-function [JV_dk_f, JV_dk_r, JV_1S_f, JV_1S_r] = doJV(sol_ini, JVscan_rate, JV_scanpoints, mui, Vstart, Vend)
+function [JV_dk_f, JV_dk_r] = doJV(sol_ini, JVscan_rate, JV_scanpoints, mui, Vstart, Vend)
 
 % A procedure for running JV scans using pindrift
 %% Input arguments
@@ -53,7 +53,7 @@ JV_dk_r = pindrift(JV_dk_f, p);
 
 disp('Complete.')
 %% 1 Sun quasi equilibrium solution
-
+%{
 disp('1 Sun quasi-equilibrium solution')
 p.JV = 0;
 p.mui = 0;          % Switch ion mobility off for illumination step
