@@ -15,9 +15,9 @@ a = sol(:,:,3);     % mobile ions
 V = sol(:,:,4);     % electric potential
 
 % Calculate energy levels and chemical potential         
-V = V - p.EA;                                % Electric potential
-Ecb = p.EA-V-p.EA;                             % Conduction band potential
-Evb = p.IP-V-p.EA;                             % Valence band potential
+V = V;                                % Electric potential
+Ecb = p.EA-V;                             % Conduction band potential
+Evb = p.IP-V;                             % Valence band potential
 % Efn = real(-V+p.Ei+(p.kB*p.T/p.q)*log(n/p.ni));      % Electron quasi-Fermi level 
 % Efp = real(-V+p.Ei-(p.kB*p.T/p.q)*log(P/p.ni));      % Hole quasi-Fermi level
 % Phin = real(p.Ei+(p.kB*p.T/p.q)*log(n/p.ni)-p.EA);     % Chemical Potential electron
