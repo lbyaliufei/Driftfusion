@@ -10,15 +10,15 @@ p.e = 1.61917e-19;      % Charge of an electron in Coulombs for current calculat
 
 % Device Dimensions [cm]
 p.tp = 200e-7;         % p-type layer thickness
-p.pp = 200;             % p-type layer points
+p.pp = 100;             % p-type layer points
 p.ti = 400e-7;         % Intrinsic layer thickness
-p.pii = 400;           % Intrinsic points
+p.pii = 200;           % Intrinsic points
 p.tn = 200e-7;         % n-type thickness
-p.pn = 200;             % n-type points
+p.pn = 100;             % n-type points
 p.tint = 20e-7;      % 0.5x Interfacial region thickness (x_mesh_type = 3)
-p.pint = 40;         % 0.5x Interfacial points (x_mesh_type = 3)
+p.pint = 20;         % 0.5x Interfacial points (x_mesh_type = 3)
 p.tscr = 50e-7;
-p.pscr = 50;
+p.pscr = 20;
 p.pepe = 20;           % electrode interface points
 p.te = 10e-7;          % electrode interface thickness
 p.deltax = p.tint/p.pint;    % spacing in the interfacial region- requires for mesh generation
@@ -45,7 +45,7 @@ p.G0 = 2.5e21;            % Uniform generation rate @ 1 Sun
 p.tmax = 1e-3;            % Time
 p.pulseon = 0;            % Switch pulse on TPC or TPV
 p.Vapp = 0;               % Applied bias
-p.BC = 2;                 % Boundary Conditions. Must be set to one for first solution
+p.BC = 1;                 % Boundary Conditions. Must be set to one for first solution
 p.figson = 1;             % Toggle figures on/off
 p.meshx_figon = 1;        % Toggles x-mesh figures on/off
 p.mesht_figon = 0;        % Toggles t-mesh figures on/off
