@@ -1,4 +1,4 @@
-function [sol_eq] = equilibrate
+function [soleq] = equilibrate
 % Uses analytical initial conditions and runs to equilibrium
 % Note that tmax is consistently adjusted to appropriate values for to
 % ensure there are numerous mesh points where large gradients in the time
@@ -47,9 +47,9 @@ p.Vapp = 0;
 p.Int = 0;
 p.pulseon = 0; 
 p.OC = 0;
-p.tmesh_type = 2;
+p.tmesh_type = 1;
 p.tmax = 1e-9;
-p.t0 = p.tmax/1e4;
+p.t0 = 0;
 
 % %% Switch off mbilities
 % p.mue_i = 0;          % electron mobility
@@ -76,7 +76,6 @@ p.mui = 0;
 
 p.figson = 1;
 p.tmax = 1e-3;
-p.t0 = p.tmax/1e3;
 
 %% Soluition with mobility switched on
 disp('Solution with mobility switched on')
@@ -84,10 +83,17 @@ sol = pindrift(sol, p);
 
 p.Ana = 1;
 p.calcJ = 0;
-p.tmax = 1e-2;
-p.t0 = p.tmax/1e10;
+p.tmax = 1;
 
-sol_eq = pindrift(sol, p);
+sol = pindrift(sol, p);
+disp('Complete')
+
+p.tmax = 1e-6;
+
+sol = pindrift(sol, p);
+
+soleq = pindrift(sol, p);
+
 disp('Complete')
 
 %{
