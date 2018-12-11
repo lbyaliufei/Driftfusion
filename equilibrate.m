@@ -1,4 +1,4 @@
-function [sol_eq, sol_i_eq, sol_i_eq_SR] = equilibrate
+function [sol_eq] = equilibrate
 % Uses analytical initial conditions and runs to equilibrium
 % Note that tmax is consistently adjusted to appropriate values for to
 % ensure there are numerous mesh points where large gradients in the time
