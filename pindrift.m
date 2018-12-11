@@ -76,7 +76,7 @@ elseif length(varargin) == 2
     
         icsol = varargin{1, 1}.sol;
         icx = varargin{1, 1}.x;
-        p = varargin{2};
+        p = varargin{1, 2};
     
     end
 
@@ -110,6 +110,7 @@ end
 
 p.xpoints = length(x);
 p.xmax = x(end);     
+p.x0 = x(1);
 
 %% Time mesh
 t = meshgen_t(p);
@@ -117,7 +118,7 @@ t = meshgen_t(p);
 %% Call solver
 
 % SOLVER OPTIONS  - limit maximum time step size during integration.
-options = odeset('MaxOrder',5, 'NonNegative', [1, 1, 1, 0], 'RelTol', p.RelTol, 'AbsTol', p.AbsTol); % Reduce RelTol to improve precision of solution
+options = odeset('MaxOrder',5, 'RelTol', p.RelTol, 'AbsTol', p.AbsTol); % Reduce RelTol to improve precision of solution
 
 % inputs with '@' are function handles to the subfunctions
 % below for the: equation, initial conditions, boundary conditions
