@@ -2,7 +2,7 @@ classdef explore
     
     methods (Static)
         
-        function parexsol = explore2par(par_base, parnames, parvalues)
+        function parexsol = explore2par(par_base, parnames, parvalues, JVstatsswitch, Vocstableswitch)
             % EXPLOREPAR is used to explore 2 different parameters using a parallel pool.
             % The code is likely to require modification for individual parameters
             % owing to possible dependencies.
@@ -10,6 +10,8 @@ classdef explore
             % PARNAMES is a cell array with the parameter names in - check these
             % carefully to avoid heartache later
             % PARVALUES is matrix with the parameter value ranges e.g.
+            % JVSTATSSWITCH = calculate JV statistic e.g. Jsc, Voc etc.
+            % VOCSTABLESWITCH = Run find Voc for stablised solution
             
             tic
             disp('Starting parameter exploration');
@@ -27,18 +29,20 @@ classdef explore
                 par = par_base;
                 par.Ana = 0;
                 par = exploreparhelper(par, str1, parval1(i));
-                par.taup(1) = par.taun(1);
+                %par.taup(1) = par.taun(1);
                 
-                Voc_f = zeros(1, length(parval2));
-                Voc_r = zeros(1, length(parval2));
-                Jsc_f = zeros(1, length(parval2));
-                Jsc_r = zeros(1, length(parval2));
-                mpp_f = zeros(1, length(parval2));
-                mpp_r = zeros(1, length(parval2));
-                FF_f = zeros(1, length(parval2));
-                FF_r = zeros(1, length(parval2));
-                Voc_stable = zeros(1, length(parval2));
-                PLint = zeros(1, length(parval2));
+                if JVstatsswitch == 1
+                    Voc_f = zeros(1, length(parval2));
+                    Voc_r = zeros(1, length(parval2));
+                    Jsc_f = zeros(1, length(parval2));
+                    Jsc_r = zeros(1, length(parval2));
+                    mpp_f = zeros(1, length(parval2));
+                    mpp_r = zeros(1, length(parval2));
+                    FF_f = zeros(1, length(parval2));
+                    FF_r = zeros(1, length(parval2));
+                    Voc_stable = zeros(1, length(parval2));
+                    PLint = zeros(1, length(parval2));
+                end
                 
                 for j = 1:length(parval2)
                     
@@ -49,47 +53,61 @@ classdef explore
                     
                     soleq = equilibrate(par);
                     % JV = doJV(soleq.i_sr, 50e-3, 100, 1, 1e-10, 0, 1.5, 2);
-                    JV = doJV(soleq.eq_sr, 50e-3, 100, 1, 0, 0, 1.3, 2);
+                    JV = doJV(soleq.eq, 50e-3, 100, 1, 0, 0, 1.3, 1);
                     
-                    Voc_f(j) = JV.stats.Voc_f;
-                    Voc_r(j) = JV.stats.Voc_r;
-                    Jsc_f(j) = JV.stats.Jsc_f;
-                    Jsc_r(j) = JV.stats.Jsc_r;
-                    mpp_f(j) = JV.stats.mpp_f;
-                    mpp_r(j) = JV.stats.mpp_r;
-                    FF_f(j) = JV.stats.FF_f;
-                    FF_r(j) = JV.stats.FF_r;
+                    if JVstatsswitch == 1
+                        Voc_f(j) = JV.stats.Voc_f;
+                        Voc_r(j) = JV.stats.Voc_r;
+                        Jsc_f(j) = JV.stats.Jsc_f;
+                        Jsc_r(j) = JV.stats.Jsc_r;
+                        mpp_f(j) = JV.stats.mpp_f;
+                        mpp_r(j) = JV.stats.mpp_r;
+                        FF_f(j) = JV.stats.FF_f;
+                        FF_r(j) = JV.stats.FF_r;
+                    end
                     
-                    % For PL
-                    %                     [sol_Voc, Voc] = findVoc(soleq.i_sr, 1e-6, Voc_f(j), (Voc_f(j)+0.1))
-                    %                     Voc_stable(j) = Voc;
-                    %                     PLint(j) = sol_Voc.PLint(end);
+                    if Vocstableswitch == 1
+                        % For PL
+                        [sol_Voc, Voc] = findVoc(soleq.i_sr, 1e-6, Voc_f(j), (Voc_f(j)+0.1))
+                        Voc_stable(j) = Voc;
+                        PLint(j) = sol_Voc.PLint(end);
+                    end
                     
                 end
                 
-                A(i,:) = Voc_f;
-                B(i,:) = Voc_r;
-                C(i,:) = Jsc_f;
-                D(i,:) = Jsc_r;
-                E(i,:) = mpp_f;
-                F(i,:) = mpp_r;
-                G(i,:) = FF_f;
-                H(i,:) = FF_r;
-                %                 J(i,:) = Voc_stable;
-                %                 K(i,:) = PLint;
+                if JVstatsswitch == 1
+                    A(i,:) = Voc_f;
+                    B(i,:) = Voc_r;
+                    C(i,:) = Jsc_f;
+                    D(i,:) = Jsc_r;
+                    E(i,:) = mpp_f;
+                    F(i,:) = mpp_r;
+                    G(i,:) = FF_f;
+                    H(i,:) = FF_r;
+                end
                 
+                if Vocstableswitch == 1
+                    J(i,:) = Voc_stable;
+                    K(i,:) = PLint;
+                end
             end
             
-            parexsol.stats.Voc_f = A;
-            parexsol.stats.Voc_r = B;
-            parexsol.stats.Jsc_f = C;
-            parexsol.stats.Jsc_r = D;
-            parexsol.stats.mpp_f = E;
-            parexsol.stats.mpp_r = F;
-            parexsol.stats.FF_f = G;
-            parexsol.stats.FF_r = H;
-            %             parexsol.stats.Voc_stable = J;
-            %             parexsol.stats.PLint = K;
+            if JVstatsswitch == 1
+                parexsol.stats.Voc_f = A;
+                parexsol.stats.Voc_r = B;
+                parexsol.stats.Jsc_f = C;
+                parexsol.stats.Jsc_r = D;
+                parexsol.stats.mpp_f = E;
+                parexsol.stats.mpp_r = F;
+                parexsol.stats.FF_f = G;
+                parexsol.stats.FF_r = H;
+            end
+            
+            if Vocstableswitch == 1
+                parexsol.stats.Voc_stable = J;
+                parexsol.stats.PLint = K;
+            end
+            
             parexsol.parnames = parnames;
             parexsol.parvalues = parvalues;
             parexsol.parval1 = parval1;
