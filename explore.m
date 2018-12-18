@@ -115,10 +115,10 @@ classdef explore
                 end
                 
                 if SCLCswitch
-                    AA(i,:) = SCLCVapp;
-                    BB(i,:) = SCLCJ;
-                    CC(i,:) = SCLCgradJV;
-                    DD(i,:) = SCLCmu_MG;
+                    AA(:,:,i) = SCLCVapp;
+                    BB(:,:,i) = SCLCJ;
+                    CC(:,:,i) = SCLCgradJV;
+                    DD(:,:,i) = SCLCmu_MG;
                     EE(i,:) = SCLCmax_gradJV;
                 end
                 
@@ -251,6 +251,30 @@ classdef explore
             %caxis([1.05, 1.15])
         end
         
+        function plotmu_MG(parexsol)
+            
+            figure(3003)
+            surf(parexsol.parval1, parexsol.parval2,  parexsol.SCLCstats.max_gradJV);
+            s1 = gca;
+            xlabel('Fermi-IP offset [eV]')
+            ylabel('N_{ion}')
+            zlabel('Calculated mobility [cm2V-1s-1]')
+            set(s1,'XScale','log');
+            set(s1,'ZScale','log');
+            shading interp
+            cb = colorbar();
+            cb.Ruler.Scale = 'log';
+            cb.Ruler.MinorTick = 'on';
+%            caxis([1e-10, 1])            
+%            xlim([parexsol.parval2(1)-parexsol.par_base.IPi, parexsol.parval2(end)-parexsol.par_base.IPi])
+%             
+%             figure(3004)
+%             semilogy(parexsol.parval2-parexsol.par_base.IPi, parexsol.SCLCstats.mu_MG_maxgrad(1,:), '-o');
+%             xlabel('Fermi-IP offset [eV]')
+%             ylabel('Calculated mobility [cm2V-1s-1]')
+%             ylim([0,2.2])
+%             xlim([parexsol.parval2(1)-parexsol.par_base.IPi, parexsol.parval2(end)-parexsol.par_base.IPi])
+        end
         
     end
     
