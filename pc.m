@@ -41,10 +41,10 @@ classdef pc
         % are inserted automatically between each layer with a width
         % defined by the property DINT and number of points defined by
         % PINT.
-        dcell = {{50e-7}; {30e-7, 450e-7, 30e-7}; {60e-7}};         % Layer and subsection thickness array
-        pcell = {{50}; {30, 225, 30}; {60}};                          % Number of points in layers and subsections array  
+        dcell = {{20e-7}; {30e-7, 450e-7, 30e-7}; {20e-7}};         % Layer and subsection thickness array
+        pcell = {{20}; {30, 225, 30}; {20}};                          % Number of points in layers and subsections array  
         dint = 4e-7;        % Interfacial region thickness (x_mesh_type = 3)
-        pint = 20;          % Interfacial points (x_mesh_type = 3)
+        pint = 40;          % Interfacial points (x_mesh_type = 3)
         
         % Define spatial cordinate system- typeically this will be kept at
         % 0 for most applications
@@ -104,26 +104,26 @@ classdef pc
         stack = {'PEDOT', 'MAPICl', 'PCBM'}
         
         %% Energy levels [eV] 
-        EA = [-3.0, -3.8, -3.8];           % Electron affinity
-        IP = [-5.1, -5.4, -6.2];           % Ionisation potential
+        EA = [-3.0, -3.8, -3.0];           % Electron affinity
+        IP = [-5.1, -5.4, -5.1];           % Ionisation potential
         % PCBM: Sigma Aldrich https://www.sigmaaldrich.com/technical-documents/articles/materials-science/organic-electronics/pcbm-n-type-semiconductors.html 
         
         %% Equilibrium Fermi energies [eV]
         % These define the doping density in each layer- see NA and ND calculations in methods         
-        E0 = [-5.0, -4.6, -3.9];   
+        E0 = [-5.05, -4.6, -5.05];   
         
         %% SRH trap energies [eV]
         % These must exist within the energy gap of the appropriate layers
         % and define the variables PT and NT in the expression:
         % U = (np-ni^2)/(taun(p+pt) +taup(n+nt))
-        Et_bulk =[-4.05, -4.6, -5.0];
+        Et_bulk =[-4.05, -4.6, -4.05];
         
         %% Electrode Fermi energies [eV]
         % Fermi energies of the metal electrode. These define the built-in voltage, Vbi 
         % and the boundary carrier concentrations nleft, pleft, nright, and 
         % pright
-        PhiA = -5.0;
-        PhiC = -3.9;
+        PhiA = -5.05;
+        PhiC = -5.05;
         
         %% Effective Density Of States (eDOS) [cm-3]
         N0 = [1e19, 1e19, 1e19];
@@ -139,8 +139,8 @@ classdef pc
         DOSion = [1e-6, 1.21e22, 1e-6];                 % P. Calado thesis           
         
         %% Mobilities   [cm2V-1s-1]
-        mue = [0.01, 20, 1e-3];         % electron mobility 
-        muh = [0.01, 20, 1e-3];         % hole mobility
+        mue = [100, 20, 100];         % electron mobility 
+        muh = [100, 20, 100];         % hole mobility
         
         muion = [0, 1e-10, 0];          % ion mobility
         % PTPD h+ mobility: https://pubs.rsc.org/en/content/articlehtml/2014/ra/c4ra05564k
@@ -149,7 +149,7 @@ classdef pc
         % Spiro muh = 0.02 cm2V-1s-1 Hawash2018
         
         %% Relative dielectric constants
-        epp = [4, 23, 4];    
+        epp = [23, 23, 23];    
                 
         %% Uniform generation rate [cm-3s-1]
         G0 = [0, 2.6409e+21, 0];        % Approximate Uniform generation rate @ 1 Sun for 510 nm active layer thickness
@@ -157,7 +157,7 @@ classdef pc
         %% Recombination
         % Radiative recombination, U = k(np - ni^2)
         % [cm3 s-1] Radiative Recombination coefficient
-        krad = [6.3e-11, 3.6e-12, 6.8e-11];
+        krad = [6.3e-11, 3.6e-12, 6.3e-11];
         
         %% Bulk SRH time constants for each layer [s]
         taun_bulk = [1e-6, 1e-6, 1e-6];           % [s] SRH time constant for electrons
@@ -165,8 +165,8 @@ classdef pc
         
         %% Interfacial SRH time constants [s]
         % Must be a row vector of length (number of layers)-1  
-        taun_inter = [1e-13, 1e-6];
-        taup_inter = [1e-13, 1e-6];
+        taun_inter = [1e-13, 1e-13];
+        taup_inter = [1e-13, 1e-13];
 
         %% Surface recombination and extraction coefficients [cm s-1]
         % Descriptions given in the comments considering that holes are
@@ -454,17 +454,27 @@ classdef pc
         
         %% Conduction band gradients at interfaces
         function value = get.dEAdx(par)
-            value = [(par.EA(2)-par.EA(1))/(2*par.dint), (par.EA(3)-par.EA(2))/(2*par.dint)];
+            value = zeros(length(par.stack)-1);
+            for i = 1:length(par.stack)-1
+                value(i) = (par.EA(i+1)-par.EA(i))/(par.dint);
+            end
+            %value = [(par.EA(2)-par.EA(1))/(2*par.dint), (par.EA(3)-par.EA(2))/(2*par.dint)];
         end
         
         %% Valence band gradients at interfaces
         function value = get.dIPdx(par)
-            value = [(par.IP(2)-par.IP(1))/(2*par.dint), (par.IP(3)-par.IP(2))/(2*par.dint)];
+            value = zeros(length(par.stack)-1);
+            for i = 1:length(par.stack)-1
+                value(i) = (par.IP(i+1)-par.IP(i))/(par.dint);
+            end
         end
         
         %% eDOS gradients at interfaces
-        function value = get.dN0dx(par)    
-            value = [(par.N0(2)-par.N0(1))/(2*par.dint), (par.N0(3)-par.N0(2))/(2*par.dint)];
+        function value = get.dN0dx(par)  
+            value = zeros(length(par.stack)-1);
+            for i = 1:length(par.stack)-1
+                value(i) = (par.N0(i+1)-par.N0(i))/(par.dint);
+            end
         end
         
         %% Donor densities
@@ -518,18 +528,18 @@ classdef pc
         %% Space charge layer widths
         % These were previously used to calculate initial conditions
         % In heterojunciton model these are currently not used
-        function value = get.wp (par)
-            value = ((-par.d(2)*par.NA(1)*par.q) + ((par.NA(1)^0.5)*(par.q^0.5)*(((par.d(2)^2)*par.NA(1)*par.q) + (4*par.epp(2)*par.Vbi))^0.5))/(2*par.NA(1)*par.q);
-        end
-        
-        function value = get.wn (par)
-            value = ((-par.d(2)*par.ND(3)*par.q) + ((par.ND(3)^0.5)*(par.q^0.5)*(((par.d(2)^2)*par.ND(3)*par.q) + (4*par.epp(2)*par.Vbi))^0.5))/(2*par.ND(3)*par.q);
-        end
-        
-        % wscr - space charge region width
-        function value = get.wscr(par)
-            value = par.wp + par.d(2) + par.wn;         % cm
-        end
+%         function value = get.wp (par)
+%             value = ((-par.d(2)*par.NA(1)*par.q) + ((par.NA(1)^0.5)*(par.q^0.5)*(((par.d(2)^2)*par.NA(1)*par.q) + (4*par.epp(2)*par.Vbi))^0.5))/(2*par.NA(1)*par.q);
+%         end
+%         
+%         function value = get.wn (par)
+%             value = ((-par.d(2)*par.ND(3)*par.q) + ((par.ND(3)^0.5)*(par.q^0.5)*(((par.d(2)^2)*par.ND(3)*par.q) + (4*par.epp(2)*par.Vbi))^0.5))/(2*par.ND(3)*par.q);
+%         end
+%         
+%         % wscr - space charge region width
+%         function value = get.wscr(par)
+%             value = par.wp + par.d(2) + par.wn;         % cm
+%         end
         
         
     end
