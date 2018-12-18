@@ -2,7 +2,7 @@ classdef explore
     
     methods (Static)
         
-        function parexsol = explore2par(par_base, parnames, parvalues, JVstatsswitch, Vocstableswitch)
+        function parexsol = explore2par(par_base, parnames, parvalues, JVpnts, JVstatsswitch, Vocstableswitch, SCLCswitch)
             % EXPLOREPAR is used to explore 2 different parameters using a parallel pool.
             % The code is likely to require modification for individual parameters
             % owing to possible dependencies.
@@ -12,6 +12,7 @@ classdef explore
             % PARVALUES is matrix with the parameter value ranges e.g.
             % JVSTATSSWITCH = calculate JV statistic e.g. Jsc, Voc etc.
             % VOCSTABLESWITCH = Run find Voc for stablised solution
+            % SCLCswitch
             
             tic
             disp('Starting parameter exploration');
@@ -40,8 +41,19 @@ classdef explore
                     mpp_r = zeros(1, length(parval2));
                     FF_f = zeros(1, length(parval2));
                     FF_r = zeros(1, length(parval2));
+                end
+                
+                if Vocstableswitch
                     Voc_stable = zeros(1, length(parval2));
                     PLint = zeros(1, length(parval2));
+                end
+                
+                if SCLCswitch
+                    SCLCVapp = zeros(1, JVpnts);
+                    SCLCJ = zeros(length(parval2), JVpnts);
+                    SCLCgradJV = zeros(length(parval2), JVpnts);
+                    SCLCmu_MG = zeros(length(parval2), JVpnts);
+                    SCLCmax_gradJV = zeros(1, length(parval2));
                 end
                 
                 for j = 1:length(parval2)
@@ -51,9 +63,20 @@ classdef explore
                     
                     par = exploreparhelper(par, str2, parval2(j));
                     
+                    par.dev = pc.builddev(par);
+                    
                     soleq = equilibrate(par);
                     % JV = doJV(soleq.i_sr, 50e-3, 100, 1, 1e-10, 0, 1.5, 2);
-                    JV = doJV(soleq.eq, 50e-3, 100, 1, 0, 0, 1.3, 1);
+                    JV = doJV(soleq.eq, 50e-3, 100, 1, 0, 0, 10, 1);
+                    SCLCstats = SCLCana(JV.dk.f, 2);
+                    
+                    if SCLCswitch
+                        SCLCVapp(j,:) = SCLCstats.Vapp;
+                        SCLCJ(j,:) = SCLCstats.J;
+                        SCLCgradJV(j,:) = SCLCstats.gradJV';
+                        SCLCmu_MG(j,:) = SCLCstats.mu_MG';
+                        SCLCmax_gradJV(j) = SCLCstats.max_gradJV;
+                    end
                     
                     if JVstatsswitch == 1
                         Voc_f(j) = JV.stats.Voc_f;
@@ -90,6 +113,15 @@ classdef explore
                     J(i,:) = Voc_stable;
                     K(i,:) = PLint;
                 end
+                
+                if SCLCswitch
+                    AA(i,:) = SCLCVapp;
+                    BB(i,:) = SCLCJ;
+                    CC(i,:) = SCLCgradJV;
+                    DD(i,:) = SCLCmu_MG;
+                    EE(i,:) = SCLCmax_gradJV;
+                end
+                
             end
             
             if JVstatsswitch == 1
@@ -106,6 +138,14 @@ classdef explore
             if Vocstableswitch == 1
                 parexsol.stats.Voc_stable = J;
                 parexsol.stats.PLint = K;
+            end
+            
+            if SCLCswitch
+                parexsol.SCLCstats.Vapp = AA;
+                parexsol.SCLCstats.J = BB;
+                parexsol.SCLCstats.gradJV = CC; 
+                parexsol.SCLCstats.mu_MG = DD;
+                parexsol.SCLCstats.max_gradJV = EE;
             end
             
             parexsol.parnames = parnames;
