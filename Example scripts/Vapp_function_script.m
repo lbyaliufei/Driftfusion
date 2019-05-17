@@ -5,17 +5,17 @@
 % 
 % sol_ini = equilibrate(par.singlecar);
 sol_ini = soleq.ng15.ion;
-par = soleq.ng15.ion.par
+par = soleq.ng15.ion.par;
 
 % tmax is the period (seconds)
-tmax = 1e-2;
+tmax = 1;
 Nperiods = 4;   % Number of periods
 %coeff = [20e-3, Nperiods*(2*pi)/tmax,0];
 coeff = [1, Nperiods*(2*pi)/tmax,0];
 Vapp_func = @(coeff, t) coeff(1)*sin(coeff(2)*t + coeff(3));
 
 % Vapp_function(sol_ini, Vapp_func, tmax, tpoints, logtime)
-sol_Vapp_func = Vapp_function(sol_ini, Vapp_func, coeff, tmax, 200, 0);
+sol_Vapp_func = Vapp_function(sol_ini, Vapp_func, coeff, tmax, 400, 0);
 
 % Plot outputs
 dfplot.Vappt(sol_Vapp_func)
