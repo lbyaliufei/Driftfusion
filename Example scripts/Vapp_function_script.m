@@ -8,7 +8,6 @@
 % tmax is the period (seconds)
 tmax = 10;
 Nperiods = 4;   % Number of periods
-%coeff = [20e-3, Nperiods*(2*pi)/tmax,0];
 coeff = [1, Nperiods*(2*pi)/tmax,0];
 Vapp_func = @(coeff, t) coeff(1)*sin(coeff(2)*t + coeff(3));
 
