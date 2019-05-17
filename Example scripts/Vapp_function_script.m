@@ -1,12 +1,12 @@
 % Creates a single carrier device and then applies a 20 mV periodic
 % potential for 2 cycles
 
-par.singlecar = pc('input_files/1 layer single carrier.csv');
+%par.singlecar = pc('input_files/1 layer single carrier.csv');
 
-soleq = equilibrate(par.singlecar);
+%soleq = equilibrate(par.singlecar);
 
 % tmax is the period (seconds)
-tmax = 1e-2;
+tmax = 10;
 Nperiods = 4;   % Number of periods
 %coeff = [20e-3, Nperiods*(2*pi)/tmax,0];
 coeff = [1, Nperiods*(2*pi)/tmax,0];
