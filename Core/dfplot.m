@@ -155,15 +155,15 @@ classdef dfplot
         end
 
         function JV(JV, option)
-            % JV - a soultion from doJV
+            % JV - a solution from doJV
             % OPTION - 1 = dark only, 2 = light only, 3 = dark & light
             % JV is a structure containing dark and illuminated JVs
 
             if option == 1 || option == 3
                 [j, J.dk.f] = dfana.calcJ(JV.dk.f);
-                Vapp.dk.f = dfana.calcVapp(JV.dk.f, 1);
+                Vapp.dk.f = dfana.calcVapp(JV.dk.f);
                 [j, J.dk.r] = dfana.calcJ(JV.dk.r);
-                Vapp.dk.r = dfana.calcVapp(JV.dk.r, 1);
+                Vapp.dk.r = dfana.calcVapp(JV.dk.r);
 
                 figure(4)
                 plot(Vapp.dk.f, J.dk.f.tot(:,end), '--', Vapp.dk.r, J.dk.r.tot(:,end));
@@ -269,6 +269,18 @@ classdef dfplot
             set(legend,'EdgeColor',[1 1 1]);
         end
             
+        function logJVapp(sol, pos)
+            % plot the log of the mod J
+            [j, J] = dfana.calcJ(sol);
+            Vapp = -(sol.u(:,end,4)-sol.u(:,1,4)-sol.par.Vbi);
+            modJ = abs(J.tot(:, pos));
+            figure(10)
+            semilogy(Vapp, modJ);
+            xlabel('Vapp [V]');
+            ylabel('|J| [A cm^{-2}]');
+            set(legend,'FontSize',16);
+            set(legend,'EdgeColor',[1 1 1]);
+        end
             
         % multiplot 1
         function mp1(varargin)
