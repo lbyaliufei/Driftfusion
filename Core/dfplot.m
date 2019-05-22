@@ -269,6 +269,18 @@ classdef dfplot
             set(legend,'EdgeColor',[1 1 1]);
         end
             
+        function logJVapp(sol, pos)
+            % plot the log of the mod J
+            [j, J] = dfana.calcJ(sol);
+            Vapp = -(sol.u(:,end,4)-sol.u(:,1,4)-sol.par.Vbi);
+            modJ = abs(J.tot(:, pos));
+            figure(10)
+            semilogy(Vapp, modJ);
+            xlabel('Vapp [V]');
+            ylabel('|J| [A cm^{-2}]');
+            set(legend,'FontSize',16);
+            set(legend,'EdgeColor',[1 1 1]);
+        end
             
         % multiplot 1
         function mp1(varargin)
