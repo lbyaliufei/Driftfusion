@@ -258,8 +258,8 @@ classdef pc
             end
             
             % Warn if xmesh_type is not correct
-            if ~ any(1:1:4 == par.xmesh_type)
-                warning('PARAMS.xmesh_type should be an integer from 1 to 4 inclusive. MESHGEN_X cannot generate a mesh if this is not the case.')
+            if ~ any(1:1:5 == par.xmesh_type)
+                warning('PARAMS.xmesh_type should be an integer from 1 to 5 inclusive. MESHGEN_X cannot generate a mesh if this is not the case.')
             end
             
             % Warn if doping density exceeds eDOS
@@ -372,7 +372,7 @@ classdef pc
             %   from 1 to 3, and if so, changes PARAMS.xmesh_type to VALUE.
             %   Otherwise, a warning is shown. Runs automatically whenever
             %   xmesh_type is changed.
-            if any(1:1:3 == value)
+            if any(1:1:5 == value)
                 par.xmesh_type = value;
             else
                 error('PARAMS.xmesh_type should be an integer from 1 to 3 inclusive. MESHGEN_X cannot generate a mesh if this is not the case.')
@@ -812,7 +812,13 @@ classdef pc
             try
                 par.OM = T{1, 'OM'};
             catch
-                warning('no optical model specified in csv')
+                warning('No optical model specified in csv. Using default in PC')
+            end
+            
+            try
+                par.xmesh_type = T{1, 'xmesh_type'};
+            catch
+                warning('No spatial mesh type defined (xmesh_type). Using default in PC')
             end
         end
     end
