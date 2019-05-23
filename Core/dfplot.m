@@ -251,10 +251,20 @@ classdef dfplot
         
         function Vappt(sol)
             % Difference in potential between the left and right boundary
+            par = sol.par
+            
+            if par.JV == 2
+                Vapp = par.Vapp_func(par.Vapp_params, sol.t);
+            else
+                Vapp = -(sol.u(:,end,4)-sol.u(:,1,4)-sol.par.Vbi);
+            end
+            Vcell = -(sol.u(:,end,4)-sol.u(:,1,4)-sol.par.Vbi);
+            
             figure(8)
-            plot(sol.t, -(sol.u(:,end,4)-sol.u(:,1,4)-sol.par.Vbi));
+            plot(sol.t, Vapp, sol.t, Vcell);
             xlabel('Time [s]')
-            ylabel('Vapp [V]')
+            ylabel('V [V]')
+            legend('Vapp', 'Vcell')
         end
         
         function JVapp(sol, pos)
@@ -272,7 +282,14 @@ classdef dfplot
         function logJVapp(sol, pos)
             % plot the log of the mod J
             [j, J] = dfana.calcJ(sol);
-            Vapp = -(sol.u(:,end,4)-sol.u(:,1,4)-sol.par.Vbi);
+            par = sol.par;
+            
+            if par.JV == 2
+                Vapp = par.Vapp_func(par.Vapp_params, sol.t);
+            else
+                Vapp = -(sol.u(:,end,4)-sol.u(:,1,4)-sol.par.Vbi);
+            end
+            
             modJ = abs(J.tot(:, pos));
             figure(10)
             semilogy(Vapp, modJ);
@@ -282,6 +299,35 @@ classdef dfplot
             set(legend,'EdgeColor',[1 1 1]);
         end
             
+        function logJVapp3D(sol, pos)
+        
+            % plot the log of the mod J
+            [j, J] = dfana.calcJ(sol);
+            par = sol.par;
+            
+            if par.JV == 2
+                Vapp = par.Vapp_func(par.Vapp_params, sol.t);
+            else
+                Vapp = -(sol.u(:,end,4)-sol.u(:,1,4)-sol.par.Vbi);
+            end
+            
+            modJ = abs(J.tot(:, pos));
+            figure(10)
+            plot3(Vapp, modJ, sol.t);
+            xlabel('Vapp [V]');
+            ylabel('|J| [A cm^{-2}]');
+            set(legend,'FontSize',16);
+            set(legend,'EdgeColor',[1 1 1]);
+        end
+        
+        function xmesh(sol)
+           figure(11)
+           plot(sol.x)
+           xlabel('Position [cm]')
+           ylabel('Point')
+        end
+            
+        
         % multiplot 1
         function mp1(varargin)
 
