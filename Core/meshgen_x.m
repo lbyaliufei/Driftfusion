@@ -150,6 +150,34 @@ switch par.xmesh_type
         % To account for rounding errors
         x(end) = dcum(end);
         
+    case 5
+    % Error function for each layer
+        dcum0 = par.dcum0;
+        pcum0 = [0,par.pcum]+1;
+        dcell = par.dcell;
+        pcell = par.pcell;
+        
+        x = zeros(1, pcum0(end)-1);
+        
+        for i = 2:length(dcum0)
+            alpha = 0.7;
+            parr = 1:1:pcell(i-1);
+            darr = 0:dcell(i-1)/pcell(i-1):dcum0(i);
+            
+            if i == 2
+                p1 = pcum0(i-1);
+            else
+                p1 = pcum0(i-1)-1;
+            end
+                
+%             if i == length(dcum0)
+%                 p2 = 
+            
+            x(pcum0(i-1):pcum0(i)-1) = x(p1) + ((erf(2*pi*alpha*(parr-pcell(i-1)/2)/pcell(i-1))+1)/2)*dcell(i-1);
+            
+        end
+    x = [0,x, dcum0(end)];
+
     otherwise
         error('DrIFtFUSION:xmesh_type', [mfilename ' - xmesh_type not recognized'])
         
