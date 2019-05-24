@@ -290,34 +290,42 @@ classdef dfplot
                 Vapp = -(sol.u(:,end,4)-sol.u(:,1,4)-sol.par.Vbi);
             end
             
-            modJ = abs(J.tot(:, pos));
+            %modJ = abs(J.tot(:, pos));
             figure(10)
-            semilogy(Vapp, modJ);
+            semilogy(Vapp, abs(J.tot(:,pos)), Vapp, abs(J.n(:,pos)), Vapp, abs(J.p(:,pos)), Vapp, abs(J.a(:,pos)), Vapp, abs(J.disp(:,pos)));
             xlabel('Vapp [V]');
             ylabel('|J| [A cm^{-2}]');
+            legend('Jtot', 'Jn', 'Jp', 'Ja', 'Jdisp')
             set(legend,'FontSize',16);
             set(legend,'EdgeColor',[1 1 1]);
         end
             
-        function logJVapp3D(sol, pos)
+        function logJVapp3D(sol, pos, ylogon)
         
-            % plot the log of the mod J
+            t = sol.t;
             [j, J] = dfana.calcJ(sol);
-            par = sol.par;
-            
-            if par.JV == 2
-                Vapp = par.Vapp_func(par.Vapp_params, sol.t);
-            else
-                Vapp = -(sol.u(:,end,4)-sol.u(:,1,4)-sol.par.Vbi);
-            end
-            
-            modJ = abs(J.tot(:, pos));
-            figure(10)
-            plot3(Vapp, modJ, sol.t);
+            Vapp=-(sol.u(:,end,4)-sol.u(:,1,4)-sol.par.Vbi);
+            Jtot=J.tot(:, pos);
+        
+            figure(11)
+            surface('XData', [Vapp Vapp],             ... % N.B.  XYZC Data must have at least 2 cols
+            'YData', [abs(Jtot) abs(Jtot)],             ...
+            'ZData', [t' t'], ...
+            'CData', [t' t'],             ...
+            'FaceColor', 'none',        ...
+            'EdgeColor', 'interp',      ...
+            'Marker', 'none','LineWidth',1);
+            s1 = gca;
             xlabel('Vapp [V]');
             ylabel('|J| [A cm^{-2}]');
-            set(legend,'FontSize',16);
-            set(legend,'EdgeColor',[1 1 1]);
+
+            if ylogon
+                set(s1,'YScale','log');
+            else
+                set(s1,'YScale','linear');
+            end
+            hold off
+            
         end
         
         function xmesh(sol)
