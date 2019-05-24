@@ -1,6 +1,6 @@
 % Creates a single carrier device and then applies a 20 mV periodic
 % potential for 2 cycles
-par = pc('input_files/1 layer Nanogap15nm.csv');
+par = pc('input_files/3 layer Nanogap15nm.csv');
 
 soleq = equilibrate(par);
 

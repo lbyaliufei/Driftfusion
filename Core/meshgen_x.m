@@ -159,6 +159,8 @@ switch par.xmesh_type
         
         x = zeros(1, pcum0(end)-1);
         
+        
+        
         for i = 2:length(dcum0)
             alpha = 0.7;
             parr = 1:1:pcell(i-1);
@@ -173,10 +175,15 @@ switch par.xmesh_type
 %             if i == length(dcum0)
 %                 p2 = 
             
-            x(pcum0(i-1):pcum0(i)-1) = x(p1) + ((erf(2*pi*alpha*(parr-pcell(i-1)/2)/pcell(i-1))+1)/2)*dcell(i-1);
-            
+            x_layer = ((erf(2*pi*alpha*(parr-pcell(i-1)/2)/pcell(i-1))+1)/2);
+            % Normalise the funciton
+            x_layer  = x_layer./max(x_layer);
+            % Scale by layer width
+            x_layer = x_layer*dcell(i-1);
+            % Write to x           
+            x(pcum0(i-1):pcum0(i)-1) = x_layer + x(p1);
         end
-    x = [0,x, dcum0(end)];
+
 
     otherwise
         error('DrIFtFUSION:xmesh_type', [mfilename ' - xmesh_type not recognized'])
