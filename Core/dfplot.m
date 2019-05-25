@@ -284,15 +284,8 @@ classdef dfplot
         function logJVapp(sol, pos)
             % plot the log of the mod J
             [j, J] = dfana.calcJ(sol);
-            par = sol.par;
-            
-            if par.JV == 2
-                Vapp = par.Vapp_func(par.Vapp_params, sol.t);
-            else
-                Vapp = -(sol.u(:,end,4)-sol.u(:,1,4)-sol.par.Vbi);
-            end
-            
-            %modJ = abs(J.tot(:, pos));
+            Vapp = dfana.calcVapp(sol);
+
             figure(10)
             semilogy(Vapp, abs(J.tot(:,pos)), Vapp, abs(J.n(:,pos)), Vapp, abs(J.p(:,pos)), Vapp, abs(J.a(:,pos)),Vapp, abs(J.c(:,pos)), Vapp, abs(J.disp(:,pos)));
             xlabel('Vapp [V]');
@@ -306,7 +299,7 @@ classdef dfplot
         
             t = sol.t;
             [j, J] = dfana.calcJ(sol);
-            Vapp=-(sol.u(:,end,4)-sol.u(:,1,4)-sol.par.Vbi);
+            Vapp = dfana.calcVapp(sol)';
             Jtot=J.tot(:, pos);
         
             figure(11)

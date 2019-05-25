@@ -286,7 +286,12 @@ classdef dfana
 
 
         function Vapp = calcVapp(sol)
-            Vapp = -(sol.u(:,end,4)-sol.u(:,1,4)-sol.par.Vbi);
+            par = sol.par;
+            if par.JV == 2
+                Vapp = par.Vapp_func(par.Vapp_params, sol.t);
+            else
+                Vapp = -(sol.u(:,end,4)-sol.u(:,1,4)-sol.par.Vbi);
+            end
         end
 
         function stats = JVstats(JVsol)
