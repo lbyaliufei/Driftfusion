@@ -24,7 +24,7 @@ classdef explore
             errorlog = zeros(length(parval1), length(parval2));
             
             j = 1;
-            for i = 1:length(parval1)
+            parfor i = 1:length(parval1)
                 
                 par = par_base;
                 par.Ana = 0;
@@ -54,7 +54,7 @@ classdef explore
                 errortemp = zeros(1,length(parval2));
                 
                 for j = 1:length(parval2)
-                    %try
+                    try
                         disp(['Run no. ', num2str((i-1)*length(parval2) + j), ', ', str1 ,' = ', num2str(parval1(i)), ' , ',str2,' = ', num2str(parval2(j))]);
                         
                         % If the second parameter name is intensity then set
@@ -93,7 +93,7 @@ classdef explore
                         sol_Vapp = Vapp_function(soleq.ion, Vapp_func, coeff, tmax, 200, 0);
                        
                         Vapp(j,:) = dfana.calcVapp(sol_Vapp);
-                        J = dfana.calcJ(sol_Vapp);
+                        [flux,J] = dfana.calcJ(sol_Vapp);
                         
                         pos = round(par.pcum(end)/2);
                         Jn(j,:) = J.n(:, pos);
@@ -103,14 +103,14 @@ classdef explore
                         Jdisp(j,:) = J.disp(:,pos);
                         Jtot(j,:) = J.tot(:,pos);
                         
-                        t(j,:) = sol_Vapp.t
+                        t(j,:) = sol_Vapp.t;
                         x(j,:) = sol_Vapp.x;
                         
                         errortemp(j) = 0;
-                    %catch
+                    catch
                         warning(['DRIFTFUSION FAILURE: Run no. ', num2str((i-1)*length(parval2) + j), ', ', str1, '= ',num2str(parval1(i)), ', ', str2, '= ', num2str(parval2(j))]);
                         errortemp(j) = 1;
-                    %end
+                    end
                 end
                 
                 A(i,:,:) = Vapp;
@@ -138,6 +138,8 @@ classdef explore
             exsol.t = H;
             exsol.x = K;
             exsol.errorlog = errorlog;
+            exsol.par_base = par_base;
+            exsol.parval1 = parval1;
             
             toc
             
@@ -156,6 +158,11 @@ classdef explore
             eval(['par.',parname,'= parvalue;']);
         end
         
+        function exsol = ana(exsol)
+           
+            
+        end
+                
         function plotPL(exsol)
             figure(100)
             s1 = surf(exsol.parval1, exsol.parval2, exsol.stats.PLint);
@@ -356,6 +363,73 @@ classdef explore
             ylabel(yproperty)
             
         end
+        
+        
+        function plotJV(exsol, par1logical, par2logical, logx,logy)
+            % PLOTPROF_2D plots one dimensional profiles of YPROPERTY using
+            % PAR1LOGICAL and PAR2LOGICAL to determine which solutions to
+            % plot.
+            % In this case YPROPERTY must be a three dimensional vector with
+            % dimensions [length(parval1), length(parval2), length(x)]
+            % contained within EXSOL
+            par = exsol.par_base;
+            
+            if length(par1logical) > length(exsol.parval1)
+                par1logical = par1logical(1:length(exsol.parval1));
+            end
+            
+            if length(par2logical) > length(exsol.parval2)
+                par2logical = par2logical(1:length(exsol.parval2));
+            end
+            
+%             if strmatch(yproperty,'a_f')
+%                 y = y-exsol.par_base.Nion(1);
+%             end
+            
+%             parval1 = cell2mat(exsol.parvalues(1));
+%             parval2 = cell2mat(exsol.parvalues(2));
+%             str1 = char(exsol.parnames(1));
+%             str2 = char(exsol.parnames(2));
+            
+            figure(114)
+            for i=1:length(exsol.parval1)
+                if par1logical(i) == 1
+                    
+                    if strmatch('dcell', str1) ~= 0
+                        % sets PCELL at the required position to provide a point
+                        % density of one point per nanometer for changes in
+                        % thickness
+                        layerpoints = round(parval1(i)*1e7);
+                        par = explore.helper(par, ['p', str1(2:end)], layerpoints);
+                    end
+                    
+                    % Rebuild device
+                    par.xx = pc.xmeshini(par);
+                    par.dev = pc.builddev(par);
+                    
+                    for j = 1:length(exsol.parval2)
+                        if par2logical(j) == 1
+                            % Rebuild solutions
+                            if logx
+                                semilogx(squeeze(exsol.Vapp(i, j, :)), squeeze(Jtot(i, j, :)));
+                            elseif logy
+                                semilogy(squeeze(exsol.Vapp(i, j, :)), squeeze(abs(Jtot(i, j, :))));
+                            elseif logx ==1 && logy ==1
+                                loglog(squeeze(exsol.Vapp(i, j, :)), squeeze(Jtot(i, j, :)));
+                            else
+                                plot(squeeze(exsol.Vapp(i, j, :)), squeeze(Jtot(i, j, :)));
+                            end
+                            hold on
+                        end
+                    end
+                end
+            end
+            hold off
+            xlabel('Vapp [V]')
+            ylabel('J [Acm-2]')
+            
+        end
+        
         
         function plotU(exsol, par1logical, par2logical,logx,logy)
             
