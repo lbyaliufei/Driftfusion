@@ -131,7 +131,8 @@ classdef pc
         mue = [1];         % electron mobility
         muh = [1];         % hole mobility
         
-        muion = [0];          % ion mobility
+        muion = [1e-10];          % ion mobility
+        mucat = [1e-10];
         % PTPD h+ mobility: https://pubs.rsc.org/en/content/articlehtml/2014/ra/c4ra05564k
         % PEDOT mue = 0.01 cm2V-1s-1 https://aip.scitation.org/doi/10.1063/1.4824104
         % TiO2 mue = 0.09 cm2V-1s-1 Bak2008

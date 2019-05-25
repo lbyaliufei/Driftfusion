@@ -2,7 +2,7 @@ classdef explore
     
     methods (Static)
         
-        function exsol = explore2par(par_base, parnames, parvalues, JVpnts)
+        function exsol = explore2par(par_base, parnames, parvalues, p_scan)
             % EXPLORE2PAR is used to explore 2 different parameters using the
             % parallel computing toolbox. The code is likely to require
             % modification for individual parameters owing to variable dependencies.
@@ -24,7 +24,7 @@ classdef explore
             errorlog = zeros(length(parval1), length(parval2));
             
             j = 1;
-            parfor i = 1:length(parval1)
+            for i = 1:length(parval1)
                 
                 par = par_base;
                 par.Ana = 0;
@@ -42,32 +42,19 @@ classdef explore
                 par.xx = pc.xmeshini(par);
                 par.dev = pc.builddev(par);
                 
-                Voc_f = zeros(1, length(parval2));
-                Voc_r = zeros(1, length(parval2));
-                Jsc_f = zeros(1, length(parval2));
-                Jsc_r = zeros(1, length(parval2));
-                mpp_f = zeros(1, length(parval2));
-                mpp_r = zeros(1, length(parval2));
-                FF_f = zeros(1, length(parval2));
-                FF_r = zeros(1, length(parval2));
-                n_av = zeros(1, length(parval2));
-                p_av = zeros(1, length(parval2));
-                % Stabilised profiles
-                n_f = zeros(length(parval2), 2000);
-                p_f = zeros(length(parval2), 2000);
-                a_f = zeros(length(parval2), 2000);
-                V_f = zeros(length(parval2), 2000);
-                x = zeros(length(parval2), 2000);
-                Voc_stable = zeros(length(parval2), JVpnts);
-                PLint = zeros(length(parval2), JVpnts);
-                Vapp_f = zeros(1, JVpnts);
-                J_f = zeros(length(parval2), JVpnts);
-                Vapp_r = zeros(1, JVpnts);
-                J_r = zeros(length(parval2), JVpnts);
+                Vapp = zeros(1, p_scan);
+                t = zeros(1, p_scan);
+                x = zeros(1, length(par.xx));
+                Jn = zeros(length(parval2), p_scan);
+                Jp = zeros(length(parval2), p_scan);
+                Ja = zeros(length(parval2), p_scan);
+                Jc = zeros(length(parval2), p_scan);
+                Jdisp = zeros(length(parval2), p_scan);
+                Jtot = zeros(length(parval2), p_scan);
                 errortemp = zeros(1,length(parval2));
                 
                 for j = 1:length(parval2)
-                    try
+                    %try
                         disp(['Run no. ', num2str((i-1)*length(parval2) + j), ', ', str1 ,' = ', num2str(parval1(i)), ' , ',str2,' = ', num2str(parval2(j))]);
                         
                         % If the second parameter name is intensity then set
@@ -88,100 +75,68 @@ classdef explore
                         % in the i loop to avoid recalculation but depends
                         % on the variables being altered.
                         soleq = equilibrate(par);
+
+                        % tmax is the period (seconds)
+                        % tmax = 10;
+                        % N_period = 4;   % Number of periods
+                        % coeff = [1, N_period*(2*pi)/tmax,0];
+                        % Vapp_func = @(coeff, t) coeff(1)*sin(coeff(2)*t + coeff(3));
+
+                        t_period = 0.5e-2;
+                        N_period = 2;   % Number of periods
+                        tmax = t_period*N_period;
+                        coeff = [2, (2*pi)/t_period,0];
+                        %Vapp_func = @(coeff, t) coeff(1)*sin(coeff(2)*t + coeff(3));
+                        Vapp_func = @(coeff, t) coeff(1)*sawtooth((t*coeff(2)+0.5*pi),0.5);
+
+                        % Vapp_function(sol_ini, Vapp_func, tmax, tpoints, logtime)
+                        sol_Vapp = Vapp_function(soleq.ion, Vapp_func, coeff, tmax, 200, 0);
+                       
+                        Vapp(j,:) = dfana.calcVapp(sol_Vapp);
+                        J = dfana.calcJ(sol_Vapp);
                         
-                        % Perform JV from 0-1.3 V at 50 mVs-1
-                        JV = doJV(soleq.ion, 50e-3, JVpnts, Int, 1, 0, 1.3, 2);
+                        pos = round(par.pcum(end)/2);
+                        Jn(j,:) = J.n(:, pos);
+                        Jp(j,:) = J.p(:, pos);
+                        Ja(j,:) = J.a(:, pos);
+                        Jc(j,:) = J.c(:, pos);
+                        Jdisp(j,:) = J.disp(:,pos);
+                        Jtot(j,:) = J.tot(:,pos);
                         
-                        % Get J-V stats
-                        stats = dfana.JVstats(JV);
+                        t(j,:) = sol_Vapp.t
+                        x(j,:) = sol_Vapp.x;
                         
-                        % Write stats into temporary variables
-                        Vapp_f(j,:) = JV.ill.f.Vapp;
-                        J_f(j,:) =  JV.ill.f.J.tot(:,end);
-                        Vapp_r(j,:) = JV.ill.r.Vapp;
-                        J_r(j,:) = JV.ill.r.J.tot(:,end);
-                        Voc_f(j) = stats.Voc_f;
-                        Voc_r(j) = stats.Voc_r;
-                        Jsc_f(j) = stats.Jsc_f;
-                        Jsc_r(j) = stats.Jsc_r;
-                        mpp_f(j) = stats.mpp_f;
-                        mpp_r(j) = stats.mpp_r;
-                        FF_f(j) = stats.FF_f;
-                        FF_r(j) = stats.FF_r;
-                        
-                        % For steady-state solution
-                        sol_ill = lighton_Rs(soleq.ion, Int, 1, 1e-6, 0, JVpnts);
-                        
-                        % Write steady-state solutions into temporary
-                        % variables
-                        Voc_stable(j,:) = dfana.Voct(sol_ill);
-                        PLint(j,:) = dfana.PLt(sol_ill);
-                        n_av(j) = mean(sol_ill.u(end, par.pcum(2):par.pcum(5),1));
-                        p_av(j) = mean(sol_ill.u(end, par.pcum(2):par.pcum(5),2));
-                        n_f = explore.writevar(n_f, j, par.xx, sol_ill.u(end,:,1));
-                        p_f = explore.writevar(p_f, j, par.xx, sol_ill.u(end,:,2));
-                        a_f = explore.writevar(a_f, j, par.xx, sol_ill.u(end,:,3));
-                        V_f = explore.writevar(V_f, j, par.xx, sol_ill.u(end,:,4));
-                        x = explore.writevar(x, j, par.xx, sol_ill.x);
                         errortemp(j) = 0;
-                    catch
+                    %catch
                         warning(['DRIFTFUSION FAILURE: Run no. ', num2str((i-1)*length(parval2) + j), ', ', str1, '= ',num2str(parval1(i)), ', ', str2, '= ', num2str(parval2(j))]);
                         errortemp(j) = 1;
-                    end
+                    %end
                 end
                 
-                A(i,:) = Voc_f;
-                B(i,:) = Voc_r;
-                C(i,:) = Jsc_f;
-                D(i,:) = Jsc_r;
-                E(i,:) = mpp_f;
-                F(i,:) = mpp_r;
-                G(i,:) = FF_f;
-                H(i,:) = FF_r;
-                J(i,:,:) = Voc_stable;
-                K(i,:,:) = PLint;
-                AA(i,:,:) = Vapp_f;
-                BB(i,:,:) = J_f;
-                CC(i,:,:) = Vapp_r;
-                DD(i,:,:) = J_r;
-                EE(i,:) = n_av;
-                FF(i,:) = p_av;
-                GG(i,:,:) = n_f;
-                HH(i,:,:) = p_f;
-                II(i,:,:) = a_f;
-                JJ(i,:,:) = V_f;
-                KK(i,:,:) = x;
+                A(i,:,:) = Vapp;
+                B(i,:,:) = Jn;
+                C(i,:,:) = Jp;
+                D(i,:,:) = Ja;
+                E(i,:,:) = Jc;
+                F(i,:,:) = Jdisp;
+                G(i,:,:) = Jtot;
+                H(i,:,:) = t;
+                K(i,:,:) = x;
+                
                 errorlog(i,:) = errortemp;
                 
             end
             
             % Store solutions in output struct
-            exsol.stats.Voc_f = A;
-            exsol.stats.Voc_r = B;
-            exsol.stats.Jsc_f = C;
-            exsol.stats.Jsc_r = D;
-            exsol.stats.mpp_f = E;
-            exsol.stats.mpp_r = F;
-            exsol.stats.FF_f = G;
-            exsol.stats.FF_r = H;
-            exsol.Vapp_f = AA;
-            exsol.J_f = BB;
-            exsol.Vapp_r = CC;
-            exsol.J_r = DD;
-            exsol.stats.Voc_stable = J;
-            exsol.stats.PLint = K;
-            exsol.parnames = parnames;
-            exsol.parvalues = parvalues;
-            exsol.parval1 = parval1;
-            exsol.parval2 = parval2;
-            exsol.par_base = par_base;
-            exsol.stats.n_av = EE;
-            exsol.stats.p_av = FF;
-            exsol.n_f = GG;
-            exsol.p_f = HH;
-            exsol.a_f = II;
-            exsol.V_f = JJ;
-            exsol.x = KK;
+            exsol.Vapp = A;
+            exsol.Jn = B;
+            exsol.Jp = C;
+            exsol.Ja = D;
+            exsol.Jc = E;
+            exsol.Jdisp = F;
+            exsol.Jtot = G;
+            exsol.t = H;
+            exsol.x = K;
             exsol.errorlog = errorlog;
             
             toc
