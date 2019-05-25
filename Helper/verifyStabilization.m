@@ -42,9 +42,9 @@ function all_stable = verifyStabilization(sol_matrix, t_array, time_fraction)
 %------------- BEGIN CODE --------------
 
 % name of the variables
-names = ["electrons", "holes", "ions", "potential"];
+names = ["electrons", "holes", "anions", "cations", "potential"];
 % which values have to be considered in a linear or in a log10 scale
-compare_log = [true, true, false, false];
+compare_log = [true, true, false, false, false];
 all_stable = true;
 
 % no need to calculate end_time for each of the 4 solutions: if they

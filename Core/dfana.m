@@ -3,7 +3,7 @@ classdef dfana
 
     methods (Static)
 
-        function [u,t,x,par,dev,n,p,a,V] = splitsol(sol)
+        function [u,t,x,par,dev,n,p,a,c,V] = splitsol(sol)
             % splits solution into useful outputs
             u = sol.u;
             t = sol.t;
@@ -16,12 +16,13 @@ classdef dfana
             p = u(:,:,2);
             a = u(:,:,3);
             V = u(:,:,4);
+            c = u(:,:,5);
         end
 
         function [Ecb, Evb, Efn, Efp] = QFLs(sol)
             % u is the solution structure
             % Simple structure names
-            [u,t,x,par,dev,n,p,a,V] = dfana.splitsol(sol);
+            [u,t,x,par,dev,n,p,a,c,V] = dfana.splitsol(sol);
 
             % Create 2D matrices for multiplication with solutions
             EAmat = repmat(dev.EA, length(t), 1);
@@ -31,6 +32,7 @@ classdef dfana
             Ncmat = repmat(dev.Nc, length(t), 1);
             Nvmat = repmat(dev.Nv, length(t), 1);
             Nionmat = repmat(dev.Nion, length(t), 1);
+            Ncatmat = repmat(dev.Ncat, length(t), 1);
             eppmat = repmat(dev.epp, length(t), 1);
             nimat = repmat(dev.ni, length(t), 1);
 
@@ -62,7 +64,7 @@ classdef dfana
             % Current, J and flux, j calculation from continuity equations
 
             % obtain SOL components for easy referencing
-            [u,t,x,par,dev,n,p,a,V] = dfana.splitsol(sol);
+            [u,t,x,par,dev,n,p,a,c,V] = dfana.splitsol(sol);
 
             % Read in generation profil
             if par.OM == 1
@@ -82,11 +84,13 @@ classdef dfana
                 dndt(:,i) = gradient(n(:,i), t);
                 dpdt(:,i) = gradient(p(:,i), t);
                 dadt(:,i) = gradient(a(:,i), t);
+                dcdt(:,i) = gradient(c(:,i), t);
             end
 
             dndtInt = trapz(x, dndt, 2);
             dpdtInt = trapz(x, dpdt, 2);
             dadtInt = trapz(x, dadt, 2);
+            dcdtInt = trapz(x, dcdt, 2);
             % Recombination
             Ubtb = kradmat.*(n.*p - nimat.^2);
 
@@ -139,11 +143,13 @@ classdef dfana
             djndx = -(dndt - g + U);    % Not certain about the sign here
             djpdx = -(dpdt - g + U);
             djadx = -dadt;
-
+            djcdx = -dcdt;
+            
             % Integrate across the device to get delta fluxes at all positions
             deltajn = cumtrapz(x, djndx, 2);
             deltajp = cumtrapz(x, djpdx, 2);
             deltaja = cumtrapz(x, djadx, 2);
+            deltajc = cumtrapz(x, djcdx, 2);
             %% Currents from the boundaries
             switch par.BC
                 case 0
@@ -182,7 +188,7 @@ classdef dfana
             j.n = jn_l + deltajn;
             j.p = jp_l + deltajp;
             j.a = 0 + deltaja;
-
+            j.c = 0 + deltajc;
             % displacement flux
             j.disp = zeros(length(t), length(x));
             [FV, Frho] = dfana.calcF(sol);
@@ -191,22 +197,22 @@ classdef dfana
                 j.disp(:,i) = par.epp0.*eppmat(:,i).*(gradient(Frho(:,i), t));
             end
 
-            J.n = -j.n*par.e;
+            J.n = j.n*-par.e;
             J.p = j.p*par.e;
-            J.a = j.a*par.e;
+            J.a = j.a*-par.e;
+            J.c = j.c*par.e;
             J.disp = j.disp*abs(par.e);
 
             % Total current
-            J.tot = J.n + J.p + J.a + J.disp;
+            J.tot = J.n + J.p + J.a + J.c + J.disp;
         end
 
         function Jdd = Jddxt(sol)
             % obtain SOL components for easy referencing
-            [u,t,x,par,dev,n,p,a,V] = dfana.splitsol(sol);
+            [u,t,x,par,dev,n,p,a,c,V] = dfana.splitsol(sol);
 
             mue_mat = repmat(dev.mue, length(t), 1);
             muh_mat = repmat(dev.muh, length(t), 1);
-            muion_mat = repmat(dev.muion, length(t), 1);
             gradEA_mat = repmat(dev.gradEA, length(t), 1);
             gradIP_mat = repmat(dev.gradIP, length(t), 1);
             gradNc_mat = repmat(dev.gradNc, length(t), 1);
@@ -220,8 +226,9 @@ classdef dfana
                 [nloc(i,:),dnlocdx(i,:)] = pdeval(0,x,n(i,:),x);
                 [ploc(i,:),dplocdx(i,:)] = pdeval(0,x,p(i,:),x);
                 [aloc(i,:),dalocdx(i,:)] = pdeval(0,x,a(i,:),x);
+                [cloc(i,:),dclocdx(i,:)] = pdeval(0,x,c(i,:),x);
                 [Vloc(i,:), dVdx(i,:)] = pdeval(0,x,V(i,:),x);
-
+        
                 % Diffusion coefficients
                 if par.stats == 'Fermi'
                     for jj = 1:length(x)
@@ -238,21 +245,23 @@ classdef dfana
 
             % Particle currents
             Jdd.ndiff = -Dn_mat.*(dnlocdx-((nloc./Nc_mat).*gradNc_mat)).*-par.e;
-            Jdd.ndrift = mue_mat.*nloc.*(-dVdx+gradEA_mat)*par.e;
+            Jdd.ndrift = mue_mat.*nloc.*(dVdx-gradEA_mat)*-par.e;
 
             Jdd.pdiff = -Dp_mat.*(dplocdx-((ploc./Nv_mat).*gradNv_mat)).*par.e;
             Jdd.pdrift = muh_mat.*ploc.*(-dVdx+gradIP_mat)*par.e;
 
-            Jdd.adiff = -dev.muion*par.kB*par.T.*dalocdx*par.e;
-            Jdd.adrift = -dev.muion.*aloc.*dVdx*par.e;
+            Jdd.adiff = -dev.muion*par.kB*par.T.*dalocdx*-par.e;
+            Jdd.adrift = dev.muion.*aloc.*dVdx*-par.e;
 
+            Jdd.cdiff = -dev.mucat*par.kB*par.T.*dalocdx*par.e;
+            Jdd.cdrift = dev.mucat.*cloc.*-dVdx*par.e;
         end
 
         function [FV, Frho] = calcF(sol)
             % Electric field caculation
             % FV = Field calculated from the gradient of the potential
             % Frho = Field calculated from integrated space charge density
-            [u,t,x,par,dev,n,p,a,V] = dfana.splitsol(sol);
+            [u,t,x,par,dev,n,p,a,c,V] = dfana.splitsol(sol);
             rho = dfana.calcrho(sol);
             eppmat = repmat(dev.epp, length(t), 1);
 
@@ -266,14 +275,13 @@ classdef dfana
 
         function rho = calcrho(sol)
             % Calculates the space charge density
-            [u,t,x,par,dev,n,p,a,V] = dfana.splitsol(sol);
+            [u,t,x,par,dev,n,p,a,c,V] = dfana.splitsol(sol);
 
             NAmat = repmat(dev.NA, length(t), 1);
             NDmat = repmat(dev.ND, length(t), 1);
-            Nionmat = repmat(dev.Nion, length(t), 1);
 
             % charge density
-            rho = -n + p + a -NAmat + NDmat - Nionmat;
+            rho = -n + p - a + c - NAmat + NDmat;
         end
 
 
@@ -361,7 +369,7 @@ classdef dfana
         end
 
         function value = PLt(sol)
-            [u,t,x,par,dev,n,p,a,V] = dfana.splitsol(sol);
+            [u,t,x,par,dev,n,p,a,c,V] = dfana.splitsol(sol);
             value = trapz(x,(n.*p),2);
         end
 

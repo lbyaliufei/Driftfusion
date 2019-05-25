@@ -51,17 +51,10 @@ end
 % Can also use AbortSet in class def
 
 dcum = par.dcum;
-E0 = par.E0;
-Eg = par.Eg;
-Eif = par.Eif;
-NA = par.NA;
-ND = par.ND;
 Vbi = par.Vbi;
 n0 = par.n0;
 nleft = par.nleft;
 nright = par.nright;
-ni = par.ni;
-p0 = par.p0;
 pleft = par.pleft;
 pright = par.pright;
 dmax = par.dcum(end);
@@ -212,7 +205,8 @@ u = pdepe(par.m,@pdex4pde,@pdex4ic,@pdex4bc,x,t,options);
         c = [1;
             1;
             1;
-            0];
+            0
+            1;];
         
         if par.stats == 'Fermi'
             Dn = F.D(u(1), dev.Dnfun(i,:), dev.n_fd(i,:));
@@ -224,13 +218,15 @@ u = pdepe(par.m,@pdex4pde,@pdex4ic,@pdex4bc,x,t,options);
         
         f = [par.mobset*(dev.mue(i)*u(1)*(-DuDx(4)+dev.gradEA(i))+(Dn*(DuDx(1)-((u(1)/dev.Nc(i))*dev.gradNc(i)))));
             par.mobset*(dev.muh(i)*u(2)*(DuDx(4)-dev.gradIP(i))+(Dp*(DuDx(2)-((u(2)/dev.Nv(i))*dev.gradNv(i)))));
-            par.mobseti*(dev.muion(i)*(u(3)*DuDx(4)+par.kB*par.T*(DuDx(3)+(u(3)*(DuDx(3)/(dev.DOSion(i)-u(3)))))));       % Nerst-Planck-Poisson approach ref: Borukhov 1997
-            (dev.epp(i)/max(par.epp))*DuDx(4);];
+            par.mobseti*(dev.muion(i)*(u(3)*-DuDx(4)+par.kB*par.T*(DuDx(3)+(u(3)*(DuDx(3)/(dev.DOSion(i)-u(3)))))));       % Nerst-Planck-Poisson approach ref: Borukhov 1997
+            (dev.epp(i)/max(par.epp))*DuDx(4);
+            par.mobseti*(dev.mucat(i)*(u(5)*DuDx(4)+par.kB*par.T*(DuDx(5)+(u(5)*(DuDx(5)/(dev.DOScat(i)-u(5)))))));];
         
         s = [g - dev.krad(i)*((u(1)*u(2))-(dev.ni(i)^2)) - par.SRHset*(((u(1)*u(2))-dev.ni(i)^2)/((dev.taun(i)*(u(2)+dev.pt(i))) + (dev.taup(i)*(u(1)+dev.nt(i)))));
             g - dev.krad(i)*((u(1)*u(2))-(dev.ni(i)^2)) - par.SRHset*(((u(1)*u(2))-dev.ni(i)^2)/((dev.taun(i)*(u(2)+dev.pt(i))) + (dev.taup(i)*(u(1)+dev.nt(i)))));
             0;
-            (par.q/(max(par.epp)*par.epp0))*(-u(1)+u(2)-dev.NA(i)+dev.ND(i)-dev.Nion(i)+u(3));];
+            (par.q/(max(par.epp)*par.epp0))*(-u(1)+u(2)-dev.NA(i)+dev.ND(i)+u(5)-u(3));
+            0;];
         
     end
 
@@ -246,14 +242,16 @@ u = pdepe(par.m,@pdex4pde,@pdex4ic,@pdex4bc,x,t,options);
             u0 = [dev.n0(i);
                 dev.p0(i);
                 dev.Nion(i);
-                dev.E0(i)];
+                dev.E0(i);
+                dev.Ncat(i);];
             
         elseif length(varargin) == 1 || length(varargin) >= 1 && max(max(max(varargin{1, 1}.u))) ~= 0
             % insert previous solution and interpolate the x points
             u0 = [interp1(icx,icsol(end,:,1),x)
                 interp1(icx,icsol(end,:,2),x)
                 interp1(icx,icsol(end,:,3),x)
-                interp1(icx,icsol(end,:,4),x)];
+                interp1(icx,icsol(end,:,4),x)
+                interp1(icx,icsol(end,:,5),x);];
             
         end
         
@@ -309,22 +307,26 @@ u = pdepe(par.m,@pdex4pde,@pdex4ic,@pdex4bc,x,t,options);
                 pl = [0;
                     0;
                     0;
-                    -ul(4)];
+                    -ul(4);
+                    0;];
                 
                 ql = [1;
                     1;
                     1;
-                    0];
+                    0;
+                    1;];
                 
                 pr = [0;
                     0;
                     0;
-                    -ur(4) + Vbi - par.Vapp;];
+                    -ur(4) + Vbi - par.Vapp;
+                    0;];
                 
                 qr = [1;
                     1;
                     1;
-                    0];
+                    0;
+                    1;];
                 
                 % Fixed majority charge densities at the boundaries- contact in equilibrium with etl and htl
                 % Blocking electrode- zero flux for minority carriers
@@ -334,22 +336,26 @@ u = pdepe(par.m,@pdex4pde,@pdex4ic,@pdex4bc,x,t,options);
                 pl = [0;
                     (ul(2)-pleft);
                     0;
-                    -ul(4);];
+                    -ul(4);
+                    0;];
                 
                 ql = [1;
                     0;
                     1;
-                    0];
+                    0;
+                    1;];
                 
                 pr = [(ur(1)-nright);
                     0;
                     0;
-                    -ur(4)+Vbi-par.Vapp;];
+                    -ur(4)+Vbi-par.Vapp;
+                    0;];
                 
                 qr = [0;
                     1;
                     1;
-                    0];
+                    0;
+                    1;];
                 
                 % Non- selective contacts - fixed charge densities for majority carrier
                 % and flux for minority carriers- use recombination coefficients sn_rec
@@ -359,22 +365,26 @@ u = pdepe(par.m,@pdex4pde,@pdex4ic,@pdex4bc,x,t,options);
                 pl = [-par.sn_l*(ul(1) - nleft);
                     ul(2) - pleft;
                     0;
-                    -ul(4);];
+                    -ul(4);
+                    0;];
                 
                 ql = [1;
                     0;
                     1;
-                    0];
+                    0;
+                    1;];
                 
                 pr = [ur(1) - nright;
                     par.sp_r*(ur(2) - pright);
                     0;
-                    -ur(4)+Vbi-par.Vapp;];
+                    -ur(4)+Vbi-par.Vapp;
+                    0;];
                 
                 qr = [0;
                     1;
                     1;
-                    0];
+                    0;
+                    1;];
                 
                 % Flux boundary conditions for both carrier types. Leads to
                 % inaccurate calculation at low currents due to the small
@@ -391,22 +401,26 @@ u = pdepe(par.m,@pdex4pde,@pdex4ic,@pdex4bc,x,t,options);
                 pl = [-par.sn_l*(ul(1) - nleft);
                     -par.sp_l*(ul(2) - pleft);
                     0;
-                    -ul(4);];
+                    -ul(4);
+                    0;];
                 
                 ql = [1;
                     1;
                     1;
-                    0];
+                    0;
+                    1;];
                 
                 pr = [par.sn_r*(ur(1) - nright);
                     par.sp_r*(ur(2) - pright);
                     0;
-                    -ur(4)+Vbi-par.Vapp+Vres;];
+                    -ur(4)+Vbi-par.Vapp+Vres;
+                    0;];
                 
                 qr = [1;
                     1;
                     1;
-                    0];
+                    0;
+                    1;];
                 
             end
             

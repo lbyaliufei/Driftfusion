@@ -122,16 +122,18 @@ classdef pc
         
         %% Mobile ions
         % Mobile ion defect density [cm-3]
-        Nion = [0];                            % A. Walsh et al. Angewandte Chemie, 2015, 127, 1811.
+        Nion = [1e19];                            % A. Walsh et al. Angewandte Chemie, 2015, 127, 1811.
+        Ncat = [1e19];
         % Approximate density of iodide sites [cm-3]
         % Limits the density of iodide vancancies
         DOSion = [1.21e22];                 % P. Calado thesis
-        
+        DOScat = [1.21e22]; 
         %% Mobilities   [cm2V-1s-1]
         mue = [1];         % electron mobility
         muh = [1];         % hole mobility
         
-        muion = [0];          % ion mobility
+        muion = [1e-10];          % ion mobility
+        mucat = [1e-14];
         % PTPD h+ mobility: https://pubs.rsc.org/en/content/articlehtml/2014/ra/c4ra05564k
         % PEDOT mue = 0.01 cm2V-1s-1 https://aip.scitation.org/doi/10.1063/1.4824104
         % TiO2 mue = 0.09 cm2V-1s-1 Bak2008
@@ -531,6 +533,7 @@ classdef pc
             dev.Nc = zeros(1, length(xx));
             dev.Nv = zeros(1, length(xx));
             dev.Nion = zeros(1, length(xx));
+            dev.Ncat = zeros(1, length(xx));
             dev.ni = zeros(1, length(xx));
             dev.n0 = zeros(1, length(xx));
             dev.p0 = zeros(1, length(xx));
@@ -586,6 +589,7 @@ classdef pc
                             dev.mue(j) = par.mue(i);
                             dev.muh(j) = par.muh(i);
                             dev.muion(j) = par.muion(i);
+                            dev.mucat(j) = par.mucat(i);
                             dev.Nc(j) = par.Nc(i);
                             dev.Nv(j) = par.Nv(i);
                             dev.NA(j) = par.NA(i);
@@ -593,7 +597,9 @@ classdef pc
                             dev.epp(j) = par.epp(i);
                             dev.ni(j) = par.ni(i);
                             dev.Nion(j) = par.Nion(i);
+                            dev.Ncat(j) = par.Ncat(i);
                             dev.DOSion(j) = par.DOSion(i);
+                            dev.DOScat(j) = par.DOScat(i);
                             dev.krad(j) = par.krad(i);
                             dev.n0(j) = par.n0(i);
                             dev.p0(j) = par.p0(i);
@@ -649,6 +655,9 @@ classdef pc
                                     % Ion mobility
                                     dmuiondx = (par.muion(i+1)-par.muion(i-1))/(par.d(i));
                                     dev.muion(j) = par.muion(i-1) + xprime*dmuiondx;
+                                    % Cation mobility
+                                    dmucatdx = (par.mucat(i+1)-par.mucat(i-1))/(par.d(i));
+                                    dev.mucat(j) = par.mucat(i-1) + xprime*dmucatdx;
                                     % Dielectric constants
                                     deppdx = (par.epp(i+1)-par.epp(i-1))/(par.d(i));
                                     dev.epp(j) = par.epp(i-1) + xprime*deppdx;
@@ -670,9 +679,15 @@ classdef pc
                                     % Static ion background density
                                     dNiondx = (par.Nion(i+1)-par.Nion(i-1))/(par.d(i));
                                     dev.Nion(j) = par.Nion(i-1) + xprime*dNiondx;
+                                     % Static ion background density
+                                    dNcatdx = (par.Ncat(i+1)-par.Ncat(i-1))/(par.d(i));
+                                    dev.Ncat(j) = par.Ncat(i-1) + xprime*dNcatdx;
                                     % Ion density of states
                                     dDOSiondx = (par.DOSion(i+1)-par.DOSion(i-1))/(par.d(i));
                                     dev.DOSion(j) = par.DOSion(i-1) + xprime*dDOSiondx;
+                                    % Ion density of states
+                                    dDOScatdx = (par.DOScat(i+1)-par.DOScat(i-1))/(par.d(i));
+                                    dev.DOScat(j) = par.DOScat(i-1) + xprime*dDOScatdx;
                                     % CB effective density of states
                                     dNcdx = (par.Nc(i+1)-par.Nc(i-1))/(par.d(i));
                                     dev.Nc(j) = par.Nc(i-1) + xprime*dNcdx;
@@ -716,13 +731,16 @@ classdef pc
                                     dev.mue(j) = par.mue(i-1) + (par.mue(i+1)-par.mue(i-1))*dev.erf(j);
                                     dev.muh(j) = par.muh(i-1) + (par.muh(i+1)-par.muh(i-1))*dev.erf(j);
                                     dev.muion(j) = par.muion(i-1) + (par.muion(i+1)-par.muion(i-1))*dev.erf(j);
+                                    dev.mucat(j) = par.mucat(i-1) + (par.mucat(i+1)-par.mucat(i-1))*dev.erf(j);
                                     dev.epp(j) = par.epp(i-1) + (par.epp(i+1)-par.epp(i-1))*dev.erf(j);
                                     dev.E0(j) = par.E0(i-1) + (par.E0(i+1)-par.E0(i-1))*dev.erf(j);
                                     dev.G0(j) = par.G0(i-1) + (par.G0(i+1)-par.G0(i-1))*dev.erf(j);
                                     dev.krad(j) = par.krad(i-1) + (par.krad(i+1)-par.krad(i-1))*dev.erf(j);
                                     dev.Et(j) = par.Et_bulk(i-1) + (par.Et_bulk(i+1)-par.Et_bulk(i-1))*dev.erf(j);
                                     dev.Nion(j) = par.Nion(i-1) + (par.Nion(i+1)-par.Nion(i-1))*dev.erf(j);
+                                    dev.Ncat(j) = par.Ncat(i-1) + (par.Ncat(i+1)-par.Ncat(i-1))*dev.erf(j);
                                     dev.DOSion(j) = par.DOSion(i-1) + (par.DOSion(i+1)-par.DOSion(i-1))*dev.erf(j);
+                                    dev.DOScat(j) = par.DOScat(i-1) + (par.DOScat(i+1)-par.DOScat(i-1))*dev.erf(j);
                                     dev.Nc(j) = par.Nc(i-1) + (par.Nc(i+1)-par.Nc(i-1))*dev.erf(j);
                                     dev.Nv(j) = par.Nv(i-1) + (par.Nv(i+1)-par.Nv(i-1))*dev.erf(j);
                                     dev.NA(j) = par.NA(i-1) + (par.NA(i+1)-par.NA(i-1))*dev.erf(j);
@@ -793,10 +811,13 @@ classdef pc
             par.Nc = T{:, 'Nc'}';
             par.Nv = T{:, 'Nv'}';
             par.Nion = T{:, 'Nion'}';
+            par.Ncat = T{:, 'Ncat'}';
             par.DOSion = T{:, 'DOSion'}';
+            par.DOScat = T{:, 'DOScat'}';
             par.mue = T{:, 'mue'}';
             par.muh = T{:, 'muh'}';
             par.muion = T{:, 'muion'}';
+            par.mucat = T{:, 'mucat'}';
             par.epp = T{:, 'epp'}';
             par.G0 = T{:, 'G0'}';
             par.krad = T{:, 'krad'}';
