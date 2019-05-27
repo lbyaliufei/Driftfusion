@@ -11,7 +11,7 @@ soleq = equilibrate(par);
 % Vapp_func = @(coeff, t) coeff(1)*sin(coeff(2)*t + coeff(3));
 %
 
-t_period = 0.5e-2;
+t_period = 1e-2;
 N_period = 2;   % Number of periods
 tmax = t_period*N_period;
 coeff = [2, (2*pi)/t_period,0];
