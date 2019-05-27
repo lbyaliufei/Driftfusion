@@ -65,11 +65,11 @@ par.sp_r = par_origin.sp_r;
 par.tmax = 1e-9;
 par.t0 = par.tmax/1e3;
 
-%% Soluition with mobility switched on
+%% Solution with mobility switched on
 disp('Solution with mobility switched on')
 sol = df(sol, par);
 
-par.tmax = 1e-3;
+par.tmax = 1;
 par.t0 = par.tmax/1e6;
 
 sol = df(sol, par);
