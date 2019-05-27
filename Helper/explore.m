@@ -29,14 +29,16 @@ classdef explore
                 par = par_base;
                 par.Ana = 0;
                 par = explore.helper(par, str1, parval1(i));
+                %% WARNING REMOVE THIS!
+                par.PhiA = par.PhiC;
                 
-                if strmatch('dcell', parnames(1)) ~= 0
-                    % sets PCELL at the required position to provide a point
-                    % density of one point per nanometer for changes in
-                    % thickness
-                    layerpoints = round(parval1(i)*1e7);
-                    par = explore.helper(par, ['p', str1(2:end)], layerpoints);
-                end
+%                 if strmatch('dcell', parnames(1)) ~= 0
+%                     % sets PCELL at the required position to provide a point
+%                     % density of one point per nanometer for changes in
+%                     % thickness
+%                     layerpoints = round(parval1(i)*1e7);
+%                     par = explore.helper(par, ['p', str1(2:end)], layerpoints);
+%                 end 
                 
                 % Rebuild device
                 par.xx = pc.xmeshini(par);
@@ -57,18 +59,25 @@ classdef explore
                     try
                         disp(['Run no. ', num2str((i-1)*length(parval2) + j), ', ', str1 ,' = ', num2str(parval1(i)), ' , ',str2,' = ', num2str(parval2(j))]);
                         
+                        N_period = 2;   % Number of periods
+                        
                         % If the second parameter name is intensity then set
                         % INT using PARVAL2 else set the appropriate
                         % parameter to the required value in par and Int is
                         % assumed to be 1
                         if strmatch('Int', parnames(2)) == 1
                             Int = parval2(j);
+                            t_period = 1.6;
+                        elseif strmatch('scan_rate', parnames(2)) == 1
+                            t_period = 4*N_period/parval2(j);
                         else
                             par = explore.helper(par, str2, parval2(j));
                             Int = 1;
                             % Rebuild device
                             par.xx = pc.xmeshini(par);
                             par.dev = pc.builddev(par);
+                            
+                            t_period = 1.6;
                         end
                         
                         % Obtain equilibrium solution - could be calculated
@@ -81,14 +90,14 @@ classdef explore
                         % N_period = 4;   % Number of periods
                         % coeff = [1, N_period*(2*pi)/tmax,0];
                         % Vapp_func = @(coeff, t) coeff(1)*sin(coeff(2)*t + coeff(3));
-
-                        t_period = 0.5e-2;
-                        N_period = 2;   % Number of periods
+                        
                         tmax = t_period*N_period;
                         coeff = [2, (2*pi)/t_period,0];
                         %Vapp_func = @(coeff, t) coeff(1)*sin(coeff(2)*t + coeff(3));
                         Vapp_func = @(coeff, t) coeff(1)*sawtooth((t*coeff(2)+0.5*pi),0.5);
 
+                        %sol_ill = lighton_Rs(soleq.ion, Int, 1e-3, 0, 0, 10);
+                        
                         % Vapp_function(sol_ini, Vapp_func, tmax, tpoints, logtime)
                         sol_Vapp = Vapp_function(soleq.ion, Vapp_func, coeff, tmax, 200, 0);
                        
@@ -138,8 +147,11 @@ classdef explore
             exsol.t = H;
             exsol.x = K;
             exsol.errorlog = errorlog;
-            exsol.par_base = par_base;
+            exsol.parnames = parnames;
+            exsol.parvalues = parvalues;
             exsol.parval1 = parval1;
+            exsol.parval2 = parval2;
+            exsol.par_base = par_base;
             
             toc
             
@@ -365,7 +377,7 @@ classdef explore
         end
         
         
-        function plotJV(exsol, par1logical, par2logical, logx,logy)
+        function plotJV(exsol, par1logical, par2logical, logx, logy, allJ)
             % PLOTPROF_2D plots one dimensional profiles of YPROPERTY using
             % PAR1LOGICAL and PAR2LOGICAL to determine which solutions to
             % plot.
@@ -386,12 +398,16 @@ classdef explore
 %                 y = y-exsol.par_base.Nion(1);
 %             end
             
-%             parval1 = cell2mat(exsol.parvalues(1));
-%             parval2 = cell2mat(exsol.parvalues(2));
-%             str1 = char(exsol.parnames(1));
-%             str2 = char(exsol.parnames(2));
+            parval1 = cell2mat(exsol.parvalues(1));
+            parval2 = cell2mat(exsol.parvalues(2));
+            str1 = char(exsol.parnames(1));
+            str2 = char(exsol.parnames(2));
             
             figure(114)
+%             N = length(exsol.parval2);
+%             C = linspecer(N); 
+%             axes('NextPlot','replacechildren', 'ColorOrder',C); 
+            
             for i=1:length(exsol.parval1)
                 if par1logical(i) == 1
                     
@@ -411,13 +427,45 @@ classdef explore
                         if par2logical(j) == 1
                             % Rebuild solutions
                             if logx
-                                semilogx(squeeze(exsol.Vapp(i, j, :)), squeeze(Jtot(i, j, :)));
+                                semilogx(squeeze(exsol.Vapp(i, j, :)), squeeze(exsol.Jtot(i, j, :)));
+                                if allJ
+                                    semilogx(squeeze(exsol.Vapp(i, j, :)), squeeze(exsol.Jn(i, j, :)),...
+                                        squeeze(exsol.Vapp(i, j, :)), squeeze(exsol.Jp(i, j, :)),...
+                                        squeeze(exsol.Vapp(i, j, :)), squeeze(exsol.Ja(i, j, :)),...
+                                        squeeze(exsol.Vapp(i, j, :)), squeeze(exsol.Jc(i, j, :)),...
+                                        squeeze(exsol.Vapp(i, j, :)), squeeze(exsol.Jdisp(i, j, :)),...
+                                        squeeze(exsol.Vapp(i, j, :)), squeeze(exsol.Jtot(i, j, :)));                            
+                                end
                             elseif logy
-                                semilogy(squeeze(exsol.Vapp(i, j, :)), squeeze(abs(Jtot(i, j, :))));
+                                semilogy(squeeze(exsol.Vapp(i, j, :)), squeeze(abs(exsol.Jtot(i, j, :))));
+                                if allJ
+                                    semilogy(squeeze(exsol.Vapp(i, j, :)), squeeze(exsol.Jn(i, j, :)),...
+                                        squeeze(exsol.Vapp(i, j, :)), squeeze(exsol.Jp(i, j, :)),...
+                                        squeeze(exsol.Vapp(i, j, :)), squeeze(exsol.Ja(i, j, :)),...
+                                        squeeze(exsol.Vapp(i, j, :)), squeeze(exsol.Jc(i, j, :)),...
+                                        squeeze(exsol.Vapp(i, j, :)), squeeze(exsol.Jdisp(i, j, :)),...
+                                        squeeze(exsol.Vapp(i, j, :)), squeeze(exsol.Jtot(i, j, :)));                             
+                                end
                             elseif logx ==1 && logy ==1
-                                loglog(squeeze(exsol.Vapp(i, j, :)), squeeze(Jtot(i, j, :)));
+                                loglog(squeeze(exsol.Vapp(i, j, :)), squeeze(abs(exsol.Jtot(i, j, :))));
+                                if allJ
+                                    loglog(squeeze(exsol.Vapp(i, j, :)), squeeze(exsol.Jn(i, j, :)),...
+                                        squeeze(exsol.Vapp(i, j, :)), squeeze(exsol.Jp(i, j, :)),...
+                                        squeeze(exsol.Vapp(i, j, :)), squeeze(exsol.Ja(i, j, :)),...
+                                        squeeze(exsol.Vapp(i, j, :)), squeeze(exsol.Jc(i, j, :)),...
+                                        squeeze(exsol.Vapp(i, j, :)), squeeze(exsol.Jdisp(i, j, :)),...
+                                        squeeze(exsol.Vapp(i, j, :)), squeeze(exsol.Jtot(i, j, :)));                          
+                                end
                             else
-                                plot(squeeze(exsol.Vapp(i, j, :)), squeeze(Jtot(i, j, :)));
+                                plot(squeeze(exsol.Vapp(i, j, :)), squeeze(exsol.Jtot(i, j, :)));
+                                if allJ
+                                    plot(squeeze(exsol.Vapp(i, j, :)), squeeze(exsol.Jn(i, j, :)),...
+                                        squeeze(exsol.Vapp(i, j, :)), squeeze(exsol.Jp(i, j, :)),...
+                                        squeeze(exsol.Vapp(i, j, :)), squeeze(exsol.Ja(i, j, :)),...
+                                        squeeze(exsol.Vapp(i, j, :)), squeeze(exsol.Jc(i, j, :)),...
+                                        squeeze(exsol.Vapp(i, j, :)), squeeze(exsol.Jdisp(i, j, :)),...
+                                        squeeze(exsol.Vapp(i, j, :)), squeeze(exsol.Jtot(i, j, :)));                          
+                                end
                             end
                             hold on
                         end
@@ -427,7 +475,9 @@ classdef explore
             hold off
             xlabel('Vapp [V]')
             ylabel('J [Acm-2]')
-            
+            if allJ
+               legend('Jn','Jp','Ja','Jc','Jdisp','Jtot') 
+            end
         end
         
         
