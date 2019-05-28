@@ -117,24 +117,24 @@ end
 Gentot = trapz(lambda, Gen, 2);
 
 if par.side == 2
-    I = fliplr(I);
-    Gen = fliplr(Gen);
-    Gentot = fliplr(Gentot);
+    I = flipud(I);
+    Gen = flipud(Gen);
+    Gentot = flipud(Gentot);
 end
 
 if figson == 1
 
-% figure(31)
-% surf(lambda, par.xx, I)
-% xlabel('Wavelength [nm]')
-% ylabel('Position [nm]')
-% zlabel('Intensity [Wcm-3]')
-% 
-% figure(32)
-% surf(lambda, par.xx, Gen)
-% xlabel('Wavelength [nm]')
-% ylabel('Position [nm]')
-% zlabel('Gen rate [cm-3s-1]')
+figure(31)
+surf(lambda, par.xx, I)
+xlabel('Wavelength [nm]')
+ylabel('Position [nm]')
+zlabel('Intensity [Wcm-3]')
+
+figure(32)
+surf(lambda, par.xx, Gen)
+xlabel('Wavelength [nm]')
+ylabel('Position [nm]')
+zlabel('Gen rate [cm-3s-1]')
 
 figure(33)
 plot(par.xx, Gentot)
