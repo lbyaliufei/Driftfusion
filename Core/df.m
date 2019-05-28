@@ -6,7 +6,7 @@ function solstruct = df(varargin)
 % and ions as a. V is the electric potential.
 %
 % Authors: Phil Calado, Piers Barnes, Ilario Gelmetti, Ben Hillman,
-% Imperial College London, 2018
+% Imperial College London, 2019
 
 % Variable input arguments
 
