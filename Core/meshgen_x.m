@@ -152,7 +152,11 @@ switch par.xmesh_type
         
     case 5
     % Error function for each layer
+        d = par.dcell;
+        p = par.pcell;
+    
         dcum0 = par.dcum0;
+        pcum = cumsum(par.pcell);
         pcum0 = [0,par.pcum]+1;
         dcell = par.dcell;
         pcell = par.pcell;
@@ -161,29 +165,38 @@ switch par.xmesh_type
 
         for i = 2:length(dcum0)
             
-            %if strcmp(par.layer_type{1,i}, 'layer') == 1
+            if strcmp(par.layer_type{1,i-1}, 'layer') == 1
             
             alpha = 0.7;
-            parr = 1:1:pcell(i-1);
+            parr = 1:1:pcell(i-1)+1;
             darr = 0:dcell(i-1)/pcell(i-1):dcum0(i);
             
             if i == 2
                 p1 = pcum0(i-1);
             else
-                p1 = pcum0(i-1)-1;
+                p1 = pcum0(i-1);
             end
                 
 %             if i == length(dcum0)
 %                 p2 =            
             x_layer = ((erf(2*pi*alpha*(parr-pcell(i-1)/2)/pcell(i-1))+1)/2);
+            % Subtract base to get zero
+            x_layer = x_layer-x_layer(1);
             % Normalise the funciton
             x_layer  = x_layer./max(x_layer);
             % Scale by layer width
             x_layer = x_layer*dcell(i-1);
             % Write to x           
-            x(pcum0(i-1):pcum0(i)-1) = x_layer + x(p1);
+            x(pcum0(i-1):pcum0(i)) = x_layer + x(p1);
+            
+            elseif strcmp(par.layer_type{1,i-1}, 'junction') == 1
+            
+                  x_layer = linspace(dcum0(i-1), dcum0(i), pcell(i-1)+1);
+                  x(1, pcum0(i-1):pcum0(i)) = x_layer;
+            end
         end
-
+        
+        
     otherwise
         error('DrIFtFUSION:xmesh_type', [mfilename ' - xmesh_type not recognized'])
         
