@@ -107,6 +107,7 @@ if option ==2 || option ==3
         disp('JV scan complete.')
         
         dfplot.JV(JV,option)
+        ylim([-30e-3, 10e-3])
         JV.stats = dfana.JVstats(JV);
 end
 toc
