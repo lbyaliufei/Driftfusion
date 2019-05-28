@@ -16,7 +16,11 @@ classdef dfana
             p = u(:,:,2);
             a = u(:,:,3);
             V = u(:,:,4);
-            c = u(:,:,5);
+            if par.N_ionic_species == 2
+                c = u(:,:,5);
+            else
+                c = repmat(dev.Nion, length(t), 1);
+            end
         end
 
         function [Ecb, Evb, Efn, Efp] = QFLs(sol)
