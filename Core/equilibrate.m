@@ -69,7 +69,7 @@ par.t0 = par.tmax/1e3;
 disp('Solution with mobility switched on')
 sol = df(sol, par);
 
-par.tmax = 1;
+par.tmax = 1e-3;
 par.t0 = par.tmax/1e6;
 
 sol = df(sol, par);
@@ -118,7 +118,13 @@ par.Rs = 0;
 
 disp('Closed circuit equilibrium with ions')
 
-par.mobseti = 1e4;           % Ions are accelerated to reach equilibrium
+% Take ratio of electron and ion mobilities in the active layer
+rat_anion = par.mue(3)/par.muion(3);
+rat_cation = par.mue(3)/par.mucat(3);
+
+par.mobseti = 1;           % Ions are accelerated to reach equilibrium
+par.K_anion = rat_anion;
+par.K_cation = rat_cation;
 par.tmax = 1e-9;
 par.t0 = par.tmax/1e3; 
 
@@ -126,7 +132,7 @@ sol = df(soleq_nosrh, par);
 
 % Longer second solution
 par.calcJ = 0;
-par.tmax = 1e-2;
+par.tmax = 1e-3;
 par.t0 = par.tmax/1e3;
 
 sol = df(sol, par);
@@ -159,6 +165,8 @@ sol = df(sol, par);
 % write solution and reset ion mobility
 soleq_i_nosrh = sol;
 soleq_i_nosrh.par.mobseti = 1;
+soleq_i_nosrh.par.K_anion = 1;
+soleq_i_nosrh.par.K_cation = 1;
 
 disp('Ion equilibrium solution complete')
 
@@ -170,6 +178,8 @@ par.calcJ = 0;
 par.tmax = 1e-6;
 par.t0 = par.tmax/1e3;
 par.mobseti = 1;
+par.K_anion = 1;
+par.K_cation = 1;
 
 soleq.ion = df(soleq_i_nosrh, par);
 disp('Complete')

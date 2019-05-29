@@ -253,7 +253,7 @@ classdef dfplot
         
         function Vappt(sol)
             % Difference in potential between the left and right boundary
-            par = sol.par
+            par = sol.par;
             
             if par.JV == 2
                 Vapp = par.Vapp_func(par.Vapp_params, sol.t);
