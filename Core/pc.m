@@ -70,7 +70,7 @@ classdef pc
         figson = 1;             % Toggle figures on/off
         meshx_figon = 0;        % Toggles x-mesh figures on/off
         mesht_figon = 0;        % Toggles t-mesh figures on/off
-        side = 1;               % illumination side 1 = EE, 2 = SE
+        side = 1;               % illumination side 1 = left, 2 = right
         calcJ = 0;              % Calculates Currents- slows down solving calcJ = 1, calculates DD currents at every position
         mobset = 1;             % Switch on/off electron hole mobility- MUST BE SET TO ZERO FOR INITIAL SOLUTION
         mobseti = 1;
@@ -81,7 +81,7 @@ classdef pc
         Fermi_limit = 0.2;      % Max allowable limit for Fermi levels beyond the bands [eV]
         Fermi_Dn_points = 400;  % No. of points in the Fermi-Dirac look-up table
         intgradfun = 'linear'   % Interface gradient function 'linear' = linear, 'erf' = 'error function'
-
+                
         %% OM = Optical Model
         % Uniform generation uses
         % 0 = Uniform Generation
@@ -122,6 +122,7 @@ classdef pc
 
         %% Mobile ions
         % Mobile ion defect density [cm-3]
+        N_ionic_species = 1;
         Nion = [1e19];                            % A. Walsh et al. Angewandte Chemie, 2015, 127, 1811.
         Ncat = [1e19];
         % Approximate density of iodide sites [cm-3]
@@ -833,13 +834,25 @@ classdef pc
             try
                 par.OM = T{1, 'OM'};
             catch
-                warning('No optical model specified in csv. Using default in PC')
+                warning('No optical model (OM) specified in .csv Using default in PC')
             end
 
             try
                 par.xmesh_type = T{1, 'xmesh_type'};
             catch
-                warning('No spatial mesh type defined (xmesh_type). Using default in PC')
+                warning('No spatial mesh type (xmesh_type) defined in .csv . Using default in PC')
+            end
+            
+            try
+                par.side = T{1, 'side'};
+            catch
+                warning('Illumination side (side) undefined in .csv . Using default in PC')
+            end
+            
+            try
+                par.N_ionic_species = T{1, 'N_ionic_species'};
+            catch
+                warning('No of ionic species (N_ionic_species) undefined in .csv. Using default in PC')
             end
         end
     end

@@ -26,7 +26,7 @@ par.SRHset = 0;
 
 %% General initial parameters
 par.tmesh_type = 2;
-par.tpoints = 40;
+par.tpoints = 10;
 
 par.JV = 0;
 par.Vapp = 0;

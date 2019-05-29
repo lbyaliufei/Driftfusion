@@ -16,7 +16,11 @@ classdef dfana
             p = u(:,:,2);
             a = u(:,:,3);
             V = u(:,:,4);
-            c = u(:,:,5);
+            if par.N_ionic_species == 2
+                c = u(:,:,5);
+            else
+                c = repmat(dev.Nion, length(t), 1);
+            end
         end
 
         function [Ecb, Evb, Efn, Efp] = QFLs(sol)
@@ -302,18 +306,14 @@ classdef dfana
                     Vapp = dfana.calcVapp(JVsol.ill.f);
                     [j,J] = dfana.calcJ(JVsol.ill.f);
                     try
-                        p1 = find(Vapp >= 0);
-                        p1 = p1(1);
-                        stats.Jsc_f = J.tot(p1, end);
+                        stats.Jsc_f = interp1(Vapp, J.tot(:, end), 0);
                     catch
                         warning('No Jsc available- Vapp must pass through 0 to obtain Jsc')
                         stats.Jsc_f = 0;
                     end
 
                     try
-                        p2 = find(J.tot(:, end) >= 0);
-                        p2 = p2(end);
-                        stats.Voc_f = Vapp(p2);
+                        stats.Voc_f = interp1(J.tot(:, end), Vapp, 0);
                     catch
                         warning('No Voc available- try increasing applied voltage range')
                         stats.Voc_f = 0;
@@ -322,11 +322,13 @@ classdef dfana
                     if stats.Jsc_f ~= 0 && stats.Voc_f ~= 0
                         pow_f = J.tot(:,end).*Vapp;
                         stats.mpp_f = min(pow_f);
-                        p3 = find(pow_f == stats.mpp_f);
-                        stats.mppV_f = Vapp(p3);
+                        stats.mppV_f = Vapp(pow_f == stats.mpp_f);
                         stats.FF_f = stats.mpp_f/(stats.Jsc_f*stats.Voc_f);
                     end
-
+                    
+                    %% Hysteresis Index
+                    A_f = abs(trapz(Vapp(Vapp >=0 & Vapp <= stats.Voc_f), J.tot(Vapp >= 0 & Vapp <= stats.Voc_f, end)));
+                                
                 else
                     stats.Jsc_f = nan;
                     stats.Voc_f = nan;
@@ -338,18 +340,14 @@ classdef dfana
                     Vapp = dfana.calcVapp(JVsol.ill.r);
                     [j,J] = dfana.calcJ(JVsol.ill.r);
                     try
-                        p1 = find(Vapp <= 0);
-                        p1 = p1(end);
-                        stats.Jsc_r = J.tot(p1, end);
+                        stats.Jsc_r = interp1(Vapp, J.tot(:, end), 0);
                     catch
                         warning('No Jsc available- Vapp must pass through 0 to obtain Jsc')
                         stats.Jsc_r = 0;
                     end
 
                     try
-                        p2 = find(J.tot(:, end) <= 0);
-                        p2 = p2(end);
-                        stats.Voc_r = Vapp(p2);
+                        stats.Voc_r = interp1(J.tot(:, end), Vapp, 0);
                     catch
                         warning('No Voc available- try increasing applied voltage range')
                         stats.Voc_r = 0;
@@ -358,11 +356,14 @@ classdef dfana
                     if stats.Jsc_r ~= 0 && stats.Voc_r ~= 0
                         pow_r = J.tot(:,end).*Vapp;
                         stats.mpp_r = min(pow_r);
-                        p3 = find(pow_r == stats.mpp_r);
-                        stats.mppV_r = Vapp(p3);
+                        stats.mppV_r = Vapp(pow_r == stats.mpp_r);
                         stats.FF_r = stats.mpp_r/(stats.Jsc_r*stats.Voc_r);
                     end
 
+                    %% Hysteresis Factor
+                    A_r = abs(trapz(Vapp(Vapp >=0 & Vapp <= stats.Voc_r), J.tot(Vapp >= 0 & Vapp <= stats.Voc_r, end)));     
+                    stats.HF = (A_f - A_r)/A_r;
+                    
                 else
                     stats.Jsc_r = nan;
                     stats.Voc_r = nan;

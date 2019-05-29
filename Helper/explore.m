@@ -44,15 +44,27 @@ classdef explore
                 par.xx = pc.xmeshini(par);
                 par.dev = pc.builddev(par);
                 
-                Vapp = zeros(1, p_scan);
+                Vapp_f = zeros(1, JVpnts);
+                J_f = zeros(length(parval2), JVpnts);
+                Vapp_r = zeros(1, JVpnts);
+                J_r = zeros(length(parval2), JVpnts);
                 t = zeros(1, p_scan);
-                x = zeros(1, length(par.xx));
-                Jn = zeros(length(parval2), p_scan);
-                Jp = zeros(length(parval2), p_scan);
-                Ja = zeros(length(parval2), p_scan);
-                Jc = zeros(length(parval2), p_scan);
-                Jdisp = zeros(length(parval2), p_scan);
-                Jtot = zeros(length(parval2), p_scan);
+%                 x = zeros(1, length(par.xx));
+%                 Jn = zeros(length(parval2), p_scan);
+%                 Jp = zeros(length(parval2), p_scan);
+%                 Ja = zeros(length(parval2), p_scan);
+%                 Jc = zeros(length(parval2), p_scan);
+%                 Jdisp = zeros(length(parval2), p_scan);
+%                 Jtot = zeros(length(parval2), p_scan);
+                % Stats
+                Voc_f = zeros(1, length(parval2));
+                Voc_r = zeros(1, length(parval2));
+                Jsc_f = zeros(1, length(parval2));
+                Jsc_r = zeros(1, length(parval2));
+                mpp_f = zeros(1, length(parval2));
+                mpp_r = zeros(1, length(parval2));
+                FF_f = zeros(1, length(parval2));
+                FF_r = zeros(1, length(parval2));
                 errortemp = zeros(1,length(parval2));
                 
                 for j = 1:length(parval2)
@@ -67,54 +79,62 @@ classdef explore
                         % assumed to be 1
                         if strmatch('Int', parnames(2)) == 1
                             Int = parval2(j);
-                            t_period = 1.6;
+                            scan_rate = 50e-3;
                         elseif strmatch('scan_rate', parnames(2)) == 1
-                            t_period = 4*N_period/parval2(j);
+                            Int = 1;
+                            scan_rate = parval2(j);
                         else
                             par = explore.helper(par, str2, parval2(j));
                             Int = 1;
                             % Rebuild device
                             par.xx = pc.xmeshini(par);
                             par.dev = pc.builddev(par);
-                            
-                            t_period = 1.6;
+                            scan_rate = 50e-3;
                         end
                         
                         % Obtain equilibrium solution - could be calculated
                         % in the i loop to avoid recalculation but depends
                         % on the variables being altered.
                         soleq = equilibrate(par);
-
-                        % tmax is the period (seconds)
-                        % tmax = 10;
-                        % N_period = 4;   % Number of periods
-                        % coeff = [1, N_period*(2*pi)/tmax,0];
-                        % Vapp_func = @(coeff, t) coeff(1)*sin(coeff(2)*t + coeff(3));
                         
-                        tmax = t_period*N_period;
-                        coeff = [2, (2*pi)/t_period,0];
-                        %Vapp_func = @(coeff, t) coeff(1)*sin(coeff(2)*t + coeff(3));
-                        Vapp_func = @(coeff, t) coeff(1)*sawtooth((t*coeff(2)+0.5*pi),0.5);
-
-                        %sol_ill = lighton_Rs(soleq.ion, Int, 1e-3, 0, 0, 10);
+                        % Perform JV from 0-1.3 V at 50 mVs-1
+                        JV = doJV(soleq.ion, scan_rate, JVpnts, Int, 1, 0, 1.3, 2);
                         
-                        % Vapp_function(sol_ini, Vapp_func, tmax, tpoints, logtime)
-                        sol_Vapp = Vapp_function(soleq.ion, Vapp_func, coeff, tmax, 200, 0);
-                       
-                        Vapp(j,:) = dfana.calcVapp(sol_Vapp);
-                        [flux,J] = dfana.calcJ(sol_Vapp);
+                        % Get J-V stats
+                        stats = dfana.JVstats(JV);
                         
-                        pos = round(par.pcum(end)/2);
-                        Jn(j,:) = J.n(:, pos);
-                        Jp(j,:) = J.p(:, pos);
-                        Ja(j,:) = J.a(:, pos);
-                        Jc(j,:) = J.c(:, pos);
-                        Jdisp(j,:) = J.disp(:,pos);
-                        Jtot(j,:) = J.tot(:,pos);
+%                         % Vapp_function(sol_ini, Vapp_func, tmax, tpoints, logtime)
+%                         sol_Vapp = Vapp_function(soleq.ion, Vapp_func, coeff, tmax, 200, 0);
+%                        
+%                         Vapp(j,:) = dfana.calcVapp(sol_Vapp);
+                        [flux_f,J_f] = dfana.calcJ(JV.ill.f);
+                        [flux_r,J_r] = dfana.calcJ(JV.ill.r);
                         
+                        % Write stats into temporary variables
+                        Vapp_f(j,:) = dfana.calcVapp(JV.ill.f);
+                        J_f(j,:) =  J_f.tot(:,end);
+                        Vapp_r(j,:) = dfana.calcVapp(JV.ill.r);
+                        J_r(j,:) = J_r.tot(:,end);
+                        Voc_f(j) = stats.Voc_f;
+                        Voc_r(j) = stats.Voc_r;
+                        Jsc_f(j) = stats.Jsc_f;
+                        Jsc_r(j) = stats.Jsc_r;
+                        mpp_f(j) = stats.mpp_f;
+                        mpp_r(j) = stats.mpp_r;
+                        FF_f(j) = stats.FF_f;
+                        FF_r(j) = stats.FF_r;
                         t(j,:) = sol_Vapp.t;
-                        x(j,:) = sol_Vapp.x;
-                        
+%                         % Current components 
+%                         pos = round(par.pcum(end)/2);
+%                         Jn(j,:) = J.n(:, pos);
+%                         Jp(j,:) = J.p(:, pos);
+%                         Ja(j,:) = J.a(:, pos);
+%                         Jc(j,:) = J.c(:, pos);
+%                         Jdisp(j,:) = J.disp(:,pos);
+%                         Jtot(j,:) = J.tot(:,pos);
+
+%                         x(j,:) = sol_Vapp.x;                     
+    
                         errortemp(j) = 0;
                     catch
                         warning(['DRIFTFUSION FAILURE: Run no. ', num2str((i-1)*length(parval2) + j), ', ', str1, '= ',num2str(parval1(i)), ', ', str2, '= ', num2str(parval2(j))]);
@@ -122,15 +142,15 @@ classdef explore
                     end
                 end
                 
-                A(i,:,:) = Vapp;
-                B(i,:,:) = Jn;
-                C(i,:,:) = Jp;
-                D(i,:,:) = Ja;
-                E(i,:,:) = Jc;
-                F(i,:,:) = Jdisp;
-                G(i,:,:) = Jtot;
+%                 A(i,:,:) = Vapp;
+%                 B(i,:,:) = Jn;
+%                 C(i,:,:) = Jp;
+%                 D(i,:,:) = Ja;
+%                 E(i,:,:) = Jc;
+%                 F(i,:,:) = Jdisp;
+%                 G(i,:,:) = Jtot;
                 H(i,:,:) = t;
-                K(i,:,:) = x;
+%                 K(i,:,:) = x;
                 
                 errorlog(i,:) = errortemp;
                 
