@@ -123,6 +123,8 @@ classdef pc
         %% Mobile ions
         % Mobile ion defect density [cm-3]
         N_ionic_species = 1;
+        K_anion = 1;                    % Coefficients to easily accelerate ions
+        K_cation = 1;                   % Coefficients to easily accelerate ions
         Nion = [1e19];                            % A. Walsh et al. Angewandte Chemie, 2015, 127, 1811.
         Ncat = [1e19];
         % Approximate density of iodide sites [cm-3]

@@ -14,12 +14,12 @@ classdef dfana
             % split the solution into its component parts (e.g. electrons, holes and efield)
             n = u(:,:,1);
             p = u(:,:,2);
-            a = u(:,:,3);
+            c = u(:,:,3);
             V = u(:,:,4);
             if par.N_ionic_species == 2
-                c = u(:,:,5);
+                a = u(:,:,5);
             else
-                c = repmat(dev.Nion, length(t), 1);
+                a = repmat(dev.Ncat, length(t), 1);
             end
         end
 
