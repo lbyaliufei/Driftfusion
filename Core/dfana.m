@@ -362,7 +362,7 @@ classdef dfana
 
                     %% Hysteresis Factor
                     A_r = abs(trapz(Vapp(Vapp >=0 & Vapp <= stats.Voc_r), J.tot(Vapp >= 0 & Vapp <= stats.Voc_r, end)));     
-                    stats.HF = (A_f - A_r)/A_r;
+                    stats.HF = abs((A_f - A_r)/A_r);
                     
                 else
                     stats.Jsc_r = nan;
