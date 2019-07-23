@@ -90,9 +90,9 @@ disp('Complete')
 
 p.tmax = 1e-6;
 
-sol = pindrift(sol, p);
-
 soleq = pindrift(sol, p);
+
+%soleq = pindrift(sol, p);
 
 disp('Complete')
 
