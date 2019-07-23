@@ -144,7 +144,11 @@ end
 if p.Int ~= 0 && p.OM ==1 || p.Int ~= 0 && p.OM == 2
     
     if x > p.tp && x < (p.tp+p.ti)
-        g = p.Int*interp1(genspace, Gx1S, (p.x-p.tp));
+        if t < p.tmax*0.1
+            g = (t/(p.tmax*0.1))*p.Int*interp1(genspace, Gx1S, (p.x-p.tp));
+        else
+            g = p.Int*interp1(genspace, Gx1S, (p.x-p.tp));
+        end
     else
         g = 0;
     end
