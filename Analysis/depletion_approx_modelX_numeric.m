@@ -1,4 +1,4 @@
-function [rhomat, Fmat, Phimat] = depletion_approx_model9_numeric(par, s, Vstart, Vend, tpoints, Varr, figson)
+function [tau_RC, tau_RC_dash, rhomat, Fmat, Phimat] = depletion_approx_modelX_numeric(par, s, Vstart, Vend, tpoints, Varr, figson)
 % Philip Calado 2019
 % Department of Physics, Imperial College London
 % Solves the depletion approximation for a device based on the parameters
@@ -58,12 +58,12 @@ q = par.e;
 
 % Doping densities in each layer
 N1 = par.NA(1);
-N2 = par.Ncat(3);
-N3 = par.ND(5);
+N2 = par.Ncat(par.active_layer);
+N3 = par.ND(end);
 
 epp1 = par.epp(1)*epp0;
-epp2 = par.epp(3)*epp0;
-epp3 = par.epp(5)*epp0;
+epp2 = par.epp(par.active_layer)*epp0;
+epp3 = par.epp(end)*epp0;
 
 Vbi = par.Vbi;
 
@@ -87,12 +87,28 @@ d2 = par.dcum0(5);% + par.dcum0(4))/2;
 d3 = par.dcum0(end);
 
 %Voltage drops
-Vint1 = (N1*w1.^2)./(2*epp1);
-Vint2 = (N2*w2.^2)./(2*epp2);
-Vint3 = (N3*w3.^2)./(2*epp3);
+Vint1 = (q*N1*w1.^2)./(2*epp1);
+Vint2 = (q*N2*w2.^2)./(2*epp2);
+Vint3 = (q*N3*w3.^2)./(2*epp3);
 
 % Ionic resistance - asumed to be constant in this version
 R = par.dcell(1)./(par.e.*par.Ncat(par.active_layer).*par.mucat(par.active_layer));
+
+% Capacitances
+C1 = Q0/Vint1;
+C2 = Q0/Vint2;
+C3 = Q0/Vint3;
+
+Cint1 = 1/(1/C1 + 1/C2);
+Cint2 = 1/(1/C2 + 1/C3);
+CT = 1/(1/Cint1 + 1/Cint2);
+
+Cg_dash = epp2/par.d_active;
+
+CT_dash = 1/(1/CT + 1/Cg_dash);
+
+tau_RC = R*CT;
+tau_RC_dash = R*CT_dash;
 
 Vbi = par.Vbi;
 Vini = Vstart;
