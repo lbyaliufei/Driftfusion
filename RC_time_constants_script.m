@@ -15,20 +15,26 @@ al = par.epp10.active_layer;
 pcum0 = par.epp10.pcum0;
 pmid = pcum0(al) + round((pcum0(al+1)-pcum0(al))/2);
 
+% Fit the decay of the cation current
 Jepp10 = dfana.calcJ(sol_relax.epp10);
 
 fit_epp10 = fit(sol_relax.epp10.t(1:180)',log(Jepp10.c(1:180, pmid)),'poly1');
 figure;plot(fit_epp10,sol_relax.epp10.t,log(Jepp10.c(:,pmid)));
-tau_epp10 = 1/fit_epp10.p1;
+tau_DF_epp10 = -1/fit_epp10.p1;
 
 Jepp20 = dfana.calcJ(sol_relax.epp20);
 
 fit_epp20 = fit(sol_relax.epp20.t(1:180)',log(Jepp20.c(1:180, pmid)),'poly1');
 figure;plot(fit_epp20,sol_relax.epp20.t,log(Jepp20.c(:,pmid)));
-tau_epp20 = 1/fit_epp20.p1;
+tau_DF_epp20 = -1/fit_epp20.p1;
 
 Jepp30 = dfana.calcJ(sol_relax.epp30);
 
 fit_epp30 = fit(sol_relax.epp30.t(1:180)',log(Jepp30.c(1:180, pmid)),'poly1');
 figure;plot(fit_epp30,sol_relax.epp30.t,log(Jepp30.c(:,pmid)));
-tau_epp30 = 1/fit_epp30.p1;
+tau_DF_epp30 = -1/fit_epp30.p1;
+
+% Calculate the time constants based on the two different circuit models
+[tau_RC_epp10, tau_RC_dash_10, ~, ~, ~] = depletion_approx_modelX_numeric(par.epp10, 1, 0, 1, 100, 0.1, 0);
+[tau_RC_epp20, tau_RC_dash_20, ~, ~, ~] = depletion_approx_modelX_numeric(par.epp20, 1, 0, 1, 100, 0.1, 0);
+[tau_RC_epp30, tau_RC_dash_30, ~, ~, ~] = depletion_approx_modelX_numeric(par.epp30, 1, 0, 1, 100, 0.1, 0);
