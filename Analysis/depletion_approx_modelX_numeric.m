@@ -95,14 +95,16 @@ Vint3 = (q*N3*w3.^2)./(2*epp3);
 R = par.dcell(1)./(par.e.*par.Ncat(par.active_layer).*par.mucat(par.active_layer));
 
 % Capacitances
-C1 = Q0/Vint1;
-C2 = Q0/Vint2;
-C3 = Q0/Vint3;
+C1 = epp1/w1;
+C2 = epp2/w2;
+C3 = epp3/w3;
 
+% interface capacitances- called Cion in Moia et al. 2019
 Cint1 = 1/(1/C1 + 1/C2);
 Cint2 = 1/(1/C2 + 1/C3);
 CT = 1/(1/Cint1 + 1/Cint2);
 
+% Perovskite PP capacitance
 Cg_dash = epp2/par.d_active;
 
 CT_dash = 1/(1/CT + 1/Cg_dash);
