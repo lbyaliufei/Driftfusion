@@ -482,12 +482,12 @@ classdef dfplot
                 p1 = find(sol.t >= tarr(i));
                 p1 = p1(1);
 
-                semilogy(xnm, (n(p1, :)), xnm, (p(p1, :)))
+                semilogy(xnm, (a(p1, :)), xnm, (c(p1, :)))
                 hold on
             end
             xlabel('Position [nm]')
-            ylabel('Carrier density [V]')
-            %legend('n', 'p')
+            ylabel('Ionic carrier density [cm-3]')
+            legend('a', 'c')
             hold off
         end
         
@@ -523,7 +523,7 @@ classdef dfplot
                 hold on
             end
             xlabel('Position [nm]')
-            ylabel('Carrier density [V]')
+            ylabel('Carrier density [cm-3]')
             legend('Ubtb', 'Usrh', 'Utot')
             hold off
         end
