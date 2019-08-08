@@ -296,6 +296,30 @@ u = pdepe(par.m,@pdex4pde,@pdex4ic,@pdex4bc,x,t,options);
             case 1
                 switch par.BC
                     % case 1 is obsolete
+                    case 1
+                        % Non- selective contacts - fixed charge densities for majority carrier
+                        % and flux for minority carriers- use recombination
+                        % coefficients sn_l & sp_r to set the surface recombination velocity.
+                        pl = [ul(1) - nleft;
+                            ul(2) - pleft;
+                            0;
+                            -ul(4);];
+                        
+                        ql = [0;
+                            0;
+                            1;
+                            0;];
+                        
+                        pr = [ur(1) - nright;
+                            ur(2) - pright;
+                            0;
+                            -ur(4)+Vbi-par.Vapp;];
+                        
+                        qr = [0;
+                            0;
+                            1;
+                            0;];
+                    
                     case 2
                         % Non- selective contacts - fixed charge densities for majority carrier
                         % and flux for minority carriers- use recombination
