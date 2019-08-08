@@ -1,18 +1,27 @@
 % Read in parameters
 par.epp10 = pc('Input_files/3_layer_test_symmetric_RC_test_epp10.csv');
-par.epp20 = pc('Input_files/3_layer_test_symmetric_RC_test_epp20.csv');
-par.epp30 = pc('Input_files/3_layer_test_symmetric_RC_test_epp30.csv');
 
-% Get equilibrium solutions
+par.epp20 = par.epp10;
+par.epp20.epp(3) = 20;
+par.epp20.dev = pc.builddev(par.epp20);
+
+par.epp30 = par.epp10;
+par.epp30.epp(3) = 30;
+par.epp30.dev = pc.builddev(par.epp30);
+
+% par.epp20 = pc('Input_files/3_layer_test_symmetric_RC_test_epp20.csv');
+% par.epp30 = pc('Input_files/3_layer_test_symmetric_RC_test_epp30.csv');
+
+% % Get equilibrium solutions
 soleq.epp10 = equilibrate(par.epp10);
 soleq.epp20 = equilibrate(par.epp20);
 soleq.epp30 = equilibrate(par.epp30);
 
 % Do a 20 mV jump forward and then record the decay
-% jumptoV(sol_ini, Vjump, tdwell, mobseti, Int, stabilise)
-sol_relax.epp10 = jumptoV(soleq.epp10.ion, 20e-3, 1, 1, 0, 1);
-sol_relax.epp20 = jumptoV(soleq.epp20.ion, 20e-3, 1, 1, 0, 1);
-sol_relax.epp30 = jumptoV(soleq.epp30.ion, 20e-3, 1, 1, 0, 1);
+% jumptoV(sol_ini, Vjump, tdwell, mobseti, Int, stabilise, accelerate)
+sol_relax.epp10 = jumptoV(soleq.epp10.ion, 20e-3, 1, 1, 0, 1, 0);
+sol_relax.epp20 = jumptoV(soleq.epp20.ion, 20e-3, 1, 1, 0, 1, 0);
+sol_relax.epp30 = jumptoV(soleq.epp30.ion, 20e-3, 1, 1, 0, 1, 0);
 
 % Extract active layer properties from params
 al = par.epp10.active_layer;
@@ -27,7 +36,7 @@ figure;plot(fit_epp10,sol_relax.epp10.t,log(Jepp10.c(:,pmid)));
 
 Jepp20 = dfana.calcJ(sol_relax.epp20);
 
-fit_epp20 = fit(sol_relax.epp20.t(10:140)',log(Jepp20.c(10:140, pmid)),'poly1');
+fit_epp20 = fit(sol_relax.epp20.t(10:180)',log(Jepp20.c(10:180, pmid)),'poly1');
 figure;plot(fit_epp20,sol_relax.epp20.t,log(Jepp20.c(:,pmid)));
 
 Jepp30 = dfana.calcJ(sol_relax.epp30);
