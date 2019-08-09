@@ -75,7 +75,7 @@ if stabilise
         par.tmax = par.tmax*10;
         par.t0 = par.tmax/1e6;
         
-        sol = df(sol, par);
+        sol = df(jump1, par);
         
         all_stable = verifyStabilization(sol.u, sol.t, 0.7);
     end

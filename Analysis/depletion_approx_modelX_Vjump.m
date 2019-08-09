@@ -142,7 +142,8 @@ V = Vbi - Vapp;
     end
 
 %% Call solver - default settings currently work well
-[tout, Q] = ode15s(@odefun,t,Q0);
+options = odeset('MaxStep', 1e-2*abs(t(end)-t(1)));
+[tout, Q] = ode15s(@odefun,t,Q0,options);
 Q = real(Q');
 
 rhomat = zeros(length(t), length(x));
