@@ -31,7 +31,7 @@ par.Vstart = Vstart;
 par.Vend = Vend;
 par.calcJ = 0;
 par.JVscan_pnts = JVscan_pnts;
-par.tmax = abs(par.Vend- par.Vstart)/JVscan_rate;           % Scan time determined by mobility- ensures cell is stable at each point
+par.tmax = abs(Vend- Vstart)/JVscan_rate;           % Scan time determined by mobility- ensures cell is stable at each point
 par.t0 = 0;
 par.tmesh_type = 1;
 par.tpoints = par.JVscan_pnts;
@@ -88,7 +88,7 @@ if option ==2 || option ==3
     par.Vstart = Vstart;
     par.Vend = Vend;
     par.calcJ = 0;
-    par.tmax = abs(par.Vend- par.Vstart)/JVscan_rate;           % Scan time determined by mobility- ensures cell is stable at each point
+    par.tmax = abs(Vend- Vstart)/JVscan_rate;           % Scan time determined by mobility- ensures cell is stable at each point
     par.t0 = 0;
     par.tmesh_type = 1;
     par.tpoints = par.JVscan_pnts;
