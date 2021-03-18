@@ -218,7 +218,7 @@ u = pdepe(par.m,@dfpde,@dfic,@dfbc,x,t,options);
         F = [F_potential; mobset*F_electron; mobset*F_hole];
 
         % Source terms
-        S_potential = (q/(eppmax*epp0))*(-n+p-NA(i)+ND(i)-a+c+Nani(i)-Ncat(i)+Felix);
+        S_potential = (q/(eppmax*epp0))*(-n+p-NA(i)+ND(i)-a+c+Nani(i)-Ncat(i)+Felix+Faff);
         S_electron = g - radset*B(i)*((n*p)-(ni(i)^2)) - SRHset*(((n*p)-ni_srh(i)^2)/(taun(i)*(p + pt(i)) + taup(i)*(n + nt(i))));
         S_hole     = g - radset*B(i)*((n*p)-(ni(i)^2)) - SRHset*(((n*p)-ni_srh(i)^2)/(taun(i)*(p + pt(i)) + taup(i)*(n + nt(i))));
         S = [S_potential; S_electron; S_hole];
